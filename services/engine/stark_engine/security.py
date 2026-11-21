@@ -41,6 +41,8 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     },
     "branding": {"logo_path": None, "logo_opacity": 0.9, "logo_scale": 0.14},
     "cadence": {"min_gap_minutes": 90, "quiet_start": 0, "quiet_end": 7, "tz_offset_h": -3},
+    "radar": {"enabled": True, "game": "Grand Theft Auto VI", "languages": [], "max_channels": 80,
+              "sensitivity": 3.0, "min_rate": 12, "youtube_query": "GTA 6 ao vivo"},
 }
 
 

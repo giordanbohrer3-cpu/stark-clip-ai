@@ -330,3 +330,95 @@ class AuditLog(SQLModel, table=True):
     target: str = ""
     detail: dict = _json()
     created_at: datetime = Field(default_factory=utcnow, index=True)
+
+
+# ---------------------------------------------------------------- radar ao vivo / máquina de clipes
+class Integration(SQLModel, table=True):
+    """Conta externa conectada via OAuth (ex.: Twitch). Tokens criptografados (Fernet)."""
+    id: int | None = Field(default=None, primary_key=True)
+    workspace_id: int = Field(foreign_key="workspace.id", index=True)
+    provider: str = Field(index=True)
+    account_id: str = ""
+    account_login: str = ""
+    token_encrypted: str | None = None
+    refresh_encrypted: str | None = None
+    expires_at: datetime | None = None
+    scopes: list = _json([])
+    updated_at: datetime = Field(default_factory=utcnow)
+
+
+class ChannelGrantBase(SQLModel):
+    platform: str = "twitch"
+    channel: str = Field(index=True)  # login em minúsculas
+    display_name: str = ""
+    rights_type: str = "creator_permission"  # creator_permission|campaign|own
+    evidence: str = ""  # link do programa de clipes, print, contrato
+    allows_commercial: bool = True
+    auto_clip: bool = True
+    active: bool = True
+
+
+class ChannelGrant(ChannelGrantBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    workspace_id: int = Field(foreign_key="workspace.id", index=True)
+    broadcaster_id: str | None = None
+    created_at: datetime = Field(default_factory=utcnow)
+
+
+class ChannelGrantRead(ChannelGrantBase):
+    id: int
+    created_at: datetime
+
+
+class LiveStreamBase(SQLModel):
+    platform: str = "twitch"
+    channel: str = Field(index=True)
+    display_name: str = ""
+    title: str = ""
+    viewers: int = 0
+    game: str = ""
+    language: str = ""
+    thumbnail_url: str = ""
+    url: str = ""
+    live: bool = Field(default=True, index=True)
+
+
+class LiveStream(LiveStreamBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    workspace_id: int = Field(foreign_key="workspace.id", index=True)
+    broadcaster_id: str | None = None
+    started_at: datetime | None = None
+    seen_at: datetime = Field(default_factory=utcnow, index=True)
+
+
+class LiveStreamRead(LiveStreamBase):
+    id: int
+    seen_at: datetime
+    authorized: bool = False
+
+
+class LiveMomentBase(SQLModel):
+    platform: str = "twitch"
+    channel: str = Field(index=True)
+    at: datetime = Field(default_factory=utcnow, index=True)
+    rate: float = 0
+    baseline: float = 0
+    score: float = 0
+    viewers: int = 0
+    tokens: list = _json([])
+    samples: list = _json([])
+    status: str = "detected"  # detected|clipping|processing|ready|failed|skipped
+    clip_id: str | None = None
+    video_id: int | None = None
+    error: str | None = None
+
+
+class LiveMoment(LiveMomentBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    workspace_id: int = Field(foreign_key="workspace.id", index=True)
+
+
+class LiveMomentRead(LiveMomentBase):
+    id: int
+    authorized: bool = False
+    watch_url: str = ""

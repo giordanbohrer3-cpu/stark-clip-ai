@@ -59,8 +59,13 @@ def render_clip(src: Path, info: dict, words: list, spec: RenderSpec, out_dir: P
 
     # legendas (posição central no layout dividido)
     chunks = cap.build_chunks(cwords, per_line=int(spec.style.get("words_per_line", 3)))
-    pos = 0.5 if plan.layout == "split" else None
-    (out_dir / "clip.ass").write_text(cap.to_ass(chunks, spec.style, 1080, 1920, pos), encoding="utf-8")
+    pos = {"split": 0.5, "stream": 0.79}.get(plan.layout)
+    title_y = 600 if plan.layout == "stream" else None
+    dur_hint = max(out_dur, 0.1)
+    style = {**spec.style}
+    if style.get("title") and not chunks:  # sem fala: título fica o clipe todo
+        chunks = [[[0.0, dur_hint, " "]]]
+    (out_dir / "clip.ass").write_text(cap.to_ass(chunks, style, 1080, 1920, pos, title_y), encoding="utf-8")
     (out_dir / "clip.srt").write_text(cap.to_srt(chunks), encoding="utf-8")
 
     ss = segs[0][0]
@@ -79,6 +84,11 @@ def render_clip(src: Path, info: dict, words: list, spec: RenderSpec, out_dir: P
         (x1, y1, w1, h1), (x2, y2, w2, h2) = plan.split
         fc.append(f"[vc]split=2[s0][s1];[s0]crop={w1}:{h1}:{x1}:{y1},scale={W}:{H // 2}:flags=lanczos[top];"
                   f"[s1]crop={w2}:{h2}:{x2}:{y2},scale={W}:{H // 2}:flags=lanczos[bot];[top][bot]vstack[vr]")
+    elif plan.layout == "stream":
+        (cx, cy, cw, ch), (gx, gy, gw, gh) = plan.split
+        top_h = int(H * 600 / 1920) // 2 * 2
+        fc.append(f"[vc]split=2[s0][s1];[s0]crop={cw}:{ch}:{cx}:{cy},scale={W}:{top_h}:flags=lanczos[top];"
+                  f"[s1]crop={gw}:{gh}:{gx}:{gy},scale={W}:{H - top_h}:flags=lanczos[bot];[top][bot]vstack[vr]")
     elif plan.layout == "fit":
         fc.append(f"[vc]split=2[s0][s1];[s0]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},"
                   f"boxblur=luma_radius=30:luma_power=2[bg];[s1]scale={W}:{H}:force_original_aspect_ratio=decrease[fg];"

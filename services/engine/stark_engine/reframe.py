@@ -63,9 +63,41 @@ def _even(v: float) -> int:
     return int(v) // 2 * 2
 
 
+def _stream_plan(samples: list, src_w: int, src_h: int) -> Plan | None:
+    """Acha a facecam: rosto que fica no MESMO lugar na maior parte do tempo (rostos do jogo se movem)."""
+    if not samples:
+        return None
+    cells: dict[tuple[int, int], list] = {}
+    for _, fs in samples:
+        seen = set()
+        for f in fs:
+            key = (min(5, int(f[0] * 6)), min(3, int(f[1] * 4)))
+            if key not in seen:
+                cells.setdefault(key, []).append(f)
+                seen.add(key)
+    if not cells:
+        return None
+    key, faces = max(cells.items(), key=lambda kv: len(kv[1]))
+    if len(faces) < max(3, 0.35 * len(samples)):
+        return None
+    cx = float(np.median([f[0] for f in faces])) * src_w
+    cy = float(np.median([f[1] for f in faces])) * src_h
+    fh = float(np.median([f[3] for f in faces])) * src_h
+    ch = _even(min(src_h * 0.6, max(fh * 2.6, src_h * 0.22)))
+    cw = _even(min(src_w, ch * 1080 / 600))
+    x = int(min(max(0, cx - cw / 2), src_w - cw)) // 2 * 2
+    y = int(min(max(0, cy - ch * 0.45), src_h - ch)) // 2 * 2
+    gw = _even(min(src_w, src_h * 1080 / 1320))
+    gx = (src_w - gw) // 4 * 2
+    return Plan("stream", src_w, src_h, split=[(x, y, cw, ch), (gx, 0, gw, _even(src_h))],
+                face_ratio=len(faces) / len(samples))
+
+
 def plan_layout(samples: list, src_w: int, src_h: int, layout: str = "auto") -> Plan:
     if src_w / max(1, src_h) <= OUT_AR * 1.08 or layout == "fit":
         return Plan("fit", src_w, src_h)
+    if layout == "stream":
+        return _stream_plan(samples, src_w, src_h) or Plan("fit", src_w, src_h)
     crop_h, crop_w = _even(src_h), _even(src_h * OUT_AR)
     with_face = [s for s in samples if s[1]]
     ratio = len(with_face) / len(samples) if samples else 0.0

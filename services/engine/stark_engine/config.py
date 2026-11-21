@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     gemini_api_key: str = ""
     ollama_url: str = "http://127.0.0.1:11434"
+    twitch_client_id: str = ""
+    twitch_client_secret: str = ""  # app grátis em dev.twitch.tv (Confidential)
+    twitch_redirect_uri: str = "http://localhost:3000/api/engine/live/twitch/callback"
 
     free_only: bool = True  # 100% grátis: APIs pagas bloqueadas (STARK_FREE_ONLY=false libera)
     worker_poll_s: float = 1.0

@@ -15,7 +15,10 @@ from .pipeline import PermissionDenied, run_analyze, run_render
 from .publishing import run_publish, scheduler_tick
 
 log = logging.getLogger("stark.worker")
-HANDLERS = {"analyze": run_analyze, "render": run_render, "publish": run_publish}
+from .live.jobs import run_import_url, run_twitch_clip  # noqa: E402
+
+HANDLERS = {"analyze": run_analyze, "render": run_render, "publish": run_publish,
+            "twitch_clip": run_twitch_clip, "import_url": run_import_url}
 _stop = False
 
 

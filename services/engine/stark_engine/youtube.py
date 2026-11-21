@@ -106,3 +106,28 @@ def trending(region: str = "BR", category: str | None = None, max_results: int =
     r = httpx.get(f"{API}/videos", timeout=20, params=params)
     r.raise_for_status()
     return _details([it["id"] for it in r.json().get("items", [])])
+
+
+def live_search(q: str, max_results: int = 15, region: str = "BR") -> list[dict]:
+    """Lives do YouTube agora (oficial), com espectadores simultâneos."""
+    r = httpx.get(f"{API}/search", timeout=20, params={
+        "part": "snippet", "type": "video", "eventType": "live", "q": q[:200], "maxResults": min(50, max_results),
+        "order": "viewCount", "regionCode": region, "key": _key()})
+    if r.status_code == 403:
+        raise YouTubeError("cota da YouTube Data API esgotada ou chave inválida")
+    r.raise_for_status()
+    ids = [it["id"]["videoId"] for it in r.json().get("items", []) if it["id"].get("videoId")]
+    if not ids:
+        return []
+    d = httpx.get(f"{API}/videos", timeout=20, params={"part": "snippet,liveStreamingDetails", "id": ",".join(ids),
+                                                       "key": _key()})
+    d.raise_for_status()
+    out = []
+    for it in d.json().get("items", []):
+        sn, lv = it["snippet"], it.get("liveStreamingDetails", {})
+        out.append({"platform": "youtube", "channel": sn["channelTitle"], "display_name": sn["channelTitle"],
+                    "title": sn["title"], "viewers": int(lv.get("concurrentViewers", 0) or 0), "game": "",
+                    "language": sn.get("defaultAudioLanguage", ""),
+                    "thumbnail_url": sn["thumbnails"].get("medium", sn["thumbnails"]["default"])["url"],
+                    "started_at": lv.get("actualStartTime"), "url": f"https://www.youtube.com/watch?v={it['id']}"})
+    return out

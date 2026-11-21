@@ -89,7 +89,21 @@ def to_srt(chunks: list[list]) -> str:
     return "\n".join(out)
 
 
-def to_ass(chunks: list[list], style: dict, width: int = 1080, height: int = 1920, position: float | None = None) -> str:
+def _wrap(text: str, n: int = 24, lines: int = 2) -> str:
+    out, cur = [], ""
+    for w in text.split():
+        if cur and len(cur) + 1 + len(w) > n:
+            out.append(cur)
+            cur = w
+        else:
+            cur = f"{cur} {w}".strip()
+    if cur:
+        out.append(cur)
+    return "\\N".join(out[:lines])
+
+
+def to_ass(chunks: list[list], style: dict, width: int = 1080, height: int = 1920, position: float | None = None,
+           title_y: int | None = None) -> str:
     size = int(style.get("size", 84))
     pos = position if position is not None else float(style.get("position", 0.68))
     margin_v = max(40, int((1 - pos) * height - size / 2))
@@ -103,7 +117,11 @@ def to_ass(chunks: list[list], style: dict, width: int = 1080, height: int = 192
         "Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n"
         f"Style: Default,{style.get('font', 'Montserrat ExtraBold')},{size},{ass_color(style.get('primary', '#FFFFFF'))},"
         f"{hl},{ass_color(style.get('outline', '#000000'))},&H96000000,-1,0,0,0,100,100,0,0,1,"
-        f"{int(style.get('outline_w', 7))},3,2,130,130,{margin_v},1\n\n"
+        f"{int(style.get('outline_w', 7))},3,2,130,130,{margin_v},1\n"
+        f"Style: Title,{style.get('font', 'Montserrat ExtraBold')},58,&H00101010,&H00101010,&H00FFFFFF,&H00FFFFFF,"
+        "-1,0,0,0,100,100,0,0,3,14,0,5,60,60,0,1\n"
+        f"Style: Credit,{style.get('font', 'Montserrat ExtraBold')},34,&H00FFFFFF,&H00FFFFFF,&H00000000,&H80000000,"
+        "-1,0,0,0,100,100,0,0,1,3,0,2,60,60,0,1\n\n"
         "[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n"
     )
     lines = []
@@ -121,4 +139,11 @@ def to_ass(chunks: list[list], style: dict, width: int = 1080, height: int = 192
             ]
             fx = "{\\fad(70,0)}" if k == 0 else ""
             lines.append(f"Dialogue: 0,{_ass_time(s)},{_ass_time(e)},Default,,0,0,0,,{fx}{' '.join(parts)}")
+    end = _ass_time(max([w[1] for ch in chunks for w in ch] or [0]) + 1.0)
+    if style.get("title"):
+        y = title_y if title_y is not None else 230
+        lines.append(f"Dialogue: 1,0:00:00.00,{end},Title,,0,0,0,,{{\\an5\\pos({width // 2},{y})}}{_wrap(_esc(str(style['title'])))}")
+    if style.get("credit"):
+        lines.append(f"Dialogue: 1,0:00:00.00,{end},Credit,,0,0,0,,{{\\an2\\pos({width // 2},{int(height * 0.885)})}}"
+                     f"{_esc(str(style['credit']))}")
     return head + "\n".join(lines) + "\n"

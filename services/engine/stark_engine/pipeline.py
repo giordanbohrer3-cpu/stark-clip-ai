@@ -106,11 +106,12 @@ def run_analyze(session: Session, job: Job, ctl: JobCtl) -> dict:
     mode = job.payload.get("mode") or cfg["clips"]["mode"]
     target = int(cfg["clips"]["target"])
     an = ClipAnalyzer(tr.words, video.duration_s, media.audio_energy(wav), scenes, mode)
-    chosen, note = an.select(target, float(cfg["clips"]["min_score"]))
+    whole = bool(job.payload.get("whole"))
+    chosen, note = ([], "") if whole else an.select(target, float(cfg["clips"]["min_score"]))
     picks = [(w, {"source": "heuristic"}) for w in chosen]
     ai_note = ""
     try:
-        if cfg["ai"]["routing"]["cut_planning"] != "heuristic":
+        if cfg["ai"]["routing"]["cut_planning"] != "heuristic" and not whole:
             ctl.progress(0.88, "refinando com IA")
             hints = sorted(an.candidates(), key=lambda w: w.score, reverse=True)
             picks = llm_plan(session, ws, an, hints, target) or picks
@@ -132,15 +133,30 @@ def run_analyze(session: Session, job: Job, ctl: JobCtl) -> dict:
                           transcript_text=d["transcript_text"], source=meta["source"])
         session.add(c)
         created.append(c)
+    if whole:  # clipe do radar já é o momento: 1 corte com o vídeo inteiro
+        desc = an.describe(an.window(0, len(an.sents) - 1)) if an.sents else {}
+        hint = str(job.payload.get("hint") or "")
+        c = ClipCandidate(video_id=video.id, rank=1, start_s=0.0, end_s=round(video.duration_s, 2),
+                          title=(desc.get("title") or hint or video.title)[:90], summary=desc.get("summary", ""),
+                          justification=f"Pico no chat ao vivo (score {job.payload.get('score', '?')})",
+                          hook=desc.get("hook", ""), score=float(job.payload.get("score") or 0),
+                          transcript_text=desc.get("transcript_text", ""), source="radar")
+        session.add(c)
+        created.append(c)
     video.status, video.error = "ready", None
     session.add(video)
     _audit(session, ws.id, "analysis_done", f"video:{video.id}", cuts=len(created), note=note, ai=ai_note)
     session.commit()
 
-    if cfg["autonomy"] in ("semi", "autonomous"):  # produção automática; publicação continua sob regra
+    if cfg["autonomy"] in ("semi", "autonomous") or job.payload.get("auto_render"):  # publicação segue regras
         for c in created:
             session.refresh(c)
             ec = new_edit(session, video, c)
+            ec.layout = str(job.payload.get("layout") or ec.layout)
+            ec.remove_pauses = not whole
+            ec.caption_style = {"title": c.title, "credit": str(job.payload.get("credit") or "")}
+            session.add(ec)
+            session.commit()
             enqueue(session, ws.id, "render", ec.id, {"preview": False})
         _audit(session, ws.id, "auto_render_queued", f"video:{video.id}", n=len(created))
         session.commit()
@@ -196,5 +212,11 @@ def run_render(session: Session, job: Job, ctl: JobCtl) -> dict:
     session.add(ec)
     _audit(session, ws.id, "render_done", f"clip:{ec.id}", preview=preview, layout=res["layout"],
            duration=res["duration"])
+    if not preview:  # momento do radar vira "pronto" no feed
+        from .models import LiveMoment
+
+        for m in session.exec(select(LiveMoment).where(LiveMoment.video_id == video.id)):
+            m.status = "ready"
+            session.add(m)
     session.commit()
     return {"duration": res["duration"], "layout": res["layout"], "plan": res["plan"], "preview": preview}
