@@ -4,6 +4,20 @@ Central de comando para transformar **vídeos autorizados** em cortes verticais 
 
 > Link do YouTube não é autorização. O app não baixa vídeos do YouTube. Envie o original (seu canal: YouTube Studio → Download) ou material licenciado/permitido pelo criador.
 
+## 100% grátis (uso pessoal)
+
+| Peça | Como fica grátis |
+|---|---|
+| Transcrição | Whisper local (sem API) |
+| Cortes / textos | Heurística local · Ollama local · Gemini free tier · Modo Operador no Claude Code (sua assinatura) |
+| APIs pagas | **Bloqueadas** no servidor (`STARK_FREE_ONLY=true`, padrão) |
+| Banco / fila | SQLite local, sem Redis |
+| Render | FFmpeg na sua máquina (GPU NVIDIA opcional) |
+| Publicação | Kit assistido / exportação (você posta no app/navegador) |
+| CI | GitHub Actions (cota grátis do plano Free) |
+
+Software 100% open source (FastAPI, Next.js, FFmpeg, faster-whisper, OpenCV). Fontes OFL.
+
 ## Rodar (Windows, macOS, Linux)
 
 Pré-requisitos: Python 3.11+ com [uv](https://docs.astral.sh/uv/), Node 20.9+ com pnpm, FFmpeg no PATH.
@@ -42,7 +56,7 @@ docker compose up --build
 
 ## Usar suas assinaturas (Modo Operador)
 
-No Claude Code, dentro deste repo: `/stark-cuts` (ou “planeje os cortes do vídeo 3”). O Claude lê o pedido do motor, escolhe os cortes e importa o JSON validado. Mesmo fluxo funciona com Gemini CLI/Codex logados. APIs pagas ficam **desligadas** até você ativar com orçamento.
+No Claude Code, dentro deste repo: `/stark-cuts` (ou “planeje os cortes do vídeo 3”). O Claude lê o pedido do motor, escolhe os cortes e importa o JSON validado. Mesmo fluxo funciona com Gemini CLI/Codex logados. No modo grátis (padrão) APIs pagas nem podem ser ativadas.
 
 ## Testes
 

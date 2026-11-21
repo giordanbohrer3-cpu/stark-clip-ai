@@ -91,6 +91,12 @@ export default function SettingsPage() {
         </Panel>
 
         <Panel eyebrow="orquestrador de IA" title="Provedores e orçamento" id="ai">
+          {cfg.data.env.free_only && (
+            <div className="mb-4"><Note tone="ok">
+              Modo 100% grátis: heurística local, Ollama, Gemini free tier (chave de projeto sem faturamento) e Modo
+              Operador no Claude Code. APIs pagas bloqueadas no servidor (STARK_FREE_ONLY).
+            </Note></div>
+          )}
           <div className="grid gap-3 sm:grid-cols-3">
             <Field label="Orçamento mensal (US$)" hint="0 = nenhuma cobrança"><Input type="number" min={0} step={0.5} value={s.ai.monthly_budget_usd} onChange={(e) => set("ai", { monthly_budget_usd: +e.target.value })} /></Field>
             <Field label="Alerta em (%)"><Input type="number" min={10} max={100} value={s.ai.alert_pct} onChange={(e) => set("ai", { alert_pct: +e.target.value })} /></Field>
@@ -99,7 +105,7 @@ export default function SettingsPage() {
               <Field key={task} label={task === "cut_planning" ? "Planejar cortes" : "Títulos/legendas"} className="sm:col-span-3 lg:col-span-1">
                 <Select value={s.ai.routing[task]} onChange={(e) => set("ai", { routing: { ...s.ai.routing, [task]: e.target.value } })}>
                   <option value="heuristic">heurística local (grátis)</option><option value="auto">auto (local → barato)</option>
-                  {Object.keys(s.ai.providers).map((p) => <option key={p} value={p}>{p}</option>)}
+                  {(cfg.data?.providers ?? []).filter((p) => !p.blocked).map((p) => <option key={p.provider} value={p.provider}>{p.provider}</option>)}
                 </Select>
               </Field>
             ))}
@@ -111,12 +117,14 @@ export default function SettingsPage() {
                 <li key={p.provider} className="grid items-center gap-2 rounded-lg border border-line p-3 sm:grid-cols-[1fr_1.4fr_auto]">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{p.provider}</span>
-                    {p.paid ? <Badge className="border-warn/40 text-warn">pago</Badge> : <Badge className="border-ok/40 text-ok">local</Badge>}
+                    {p.blocked ? <Badge className="border-muted/40 text-muted">bloqueado (grátis)</Badge>
+                      : p.paid ? <Badge className="border-warn/40 text-warn">pago</Badge>
+                      : <Badge className="border-ok/40 text-ok">{p.provider === "ollama" ? "local" : "free tier"}</Badge>}
                     <Badge className={p.has_key ? "border-ok/40 text-ok" : "border-bad/40 text-bad"}>{p.has_key ? "chave ok" : "sem chave"}</Badge>
                   </div>
                   <Input value={pc.model} aria-label={`modelo ${p.provider}`} className="h-8 text-xs"
                     onChange={(e) => set("ai", { providers: { ...s.ai.providers, [p.provider]: { ...pc, model: e.target.value } } })} />
-                  <Toggle checked={pc.enabled} label="ativo" onChange={(v) => set("ai", { providers: { ...s.ai.providers, [p.provider]: { ...pc, enabled: v } } })} />
+                  <Toggle checked={pc.enabled && !p.blocked} disabled={p.blocked} label="ativo" onChange={(v) => set("ai", { providers: { ...s.ai.providers, [p.provider]: { ...pc, enabled: v } } })} />
                 </li>
               );
             })}

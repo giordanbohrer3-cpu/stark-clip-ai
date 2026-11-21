@@ -4,6 +4,12 @@ Legenda: ✅ validado nesta sessão · 🟡 implementado, não validado (falta c
 
 Verificado em 2026-11-21. Regras de plataformas mudam: confira a documentação oficial antes de depender delas.
 
+## Modo 100% grátis (padrão)
+
+`STARK_FREE_ONLY=true`: o servidor recusa ativar ou rotear Anthropic/OpenAI (HTTP 403) e registra custo 0.
+Permitidos: heurística, Ollama (local) e Gemini **free tier** — crie a chave no Google AI Studio em projeto
+**sem faturamento** (assim não há cobrança; no free tier o Google pode usar os dados para melhorar produtos).
+
 ## Runtime do app
 
 | Integração | Status | Notas |

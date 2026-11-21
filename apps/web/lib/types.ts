@@ -33,6 +33,7 @@ export type VideoDetail = {
   transcript: { language: string; model: string; words: number; text: string; segments: [number, number, string][] } | null;
 };
 export type Word = [number, number, string, number?];
+export type UploadSession = { upload_id: string; chunk_size: number; chunks: number };
 export type ClipContext = {
   words: Word[]; video: { id: number; title: string; duration_s: number; width: number; height: number; niche: string };
   candidate: { id: number; title: string; score: number; justification: string; start_s: number; end_s: number } | null;
@@ -65,7 +66,8 @@ export type Stats = {
 };
 export type Health = { ok: boolean; version: string; ffmpeg: boolean; db: boolean; whisper_model: string; youtube_api: boolean };
 export type ProviderStatus = {
-  provider: string; enabled: boolean; has_key: boolean; model: string; paid: boolean; price_in: number; price_out: number;
+  provider: string; enabled: boolean; has_key: boolean; model: string; paid: boolean; blocked: boolean; free_tier: boolean;
+  price_in: number; price_out: number;
 };
 export type Settings = {
   autonomy: "assisted" | "semi" | "autonomous"; paused: boolean;
@@ -77,7 +79,7 @@ export type Settings = {
   branding: { logo_path: string | null; logo_opacity: number; logo_scale: number };
   cadence: { min_gap_minutes: number; quiet_start: number; quiet_end: number; tz_offset_h: number };
 };
-export type SettingsResp = { settings: Settings; providers: ProviderStatus[]; env: { youtube_api: boolean; whisper_model: string } };
+export type SettingsResp = { settings: Settings; providers: ProviderStatus[]; env: { youtube_api: boolean; whisper_model: string; free_only: boolean } };
 export type Trend = {
   id: number; source: string; region: string; kind: string; label: string; url: string | null;
   metric: Record<string, unknown>; confidence: number; license_note: string; fetched_at: string;

@@ -1,0 +1,54 @@
+# CI gratuito (repo privado: cota grátis mensal do GitHub Free). Motor + web em paralelo.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  engine:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: services/engine
+    steps:
+      - uses: actions/checkout@v4
+      - name: FFmpeg + espeak-ng (vídeo de teste sintético)
+        run: sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends ffmpeg espeak-ng
+      - uses: astral-sh/setup-uv@v6
+      - name: Cache modelos Whisper
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: whisper-base-v1
+      - run: uv sync --group dev
+      - run: uv run ruff check stark_engine tests
+      - run: uv run pytest -q
+
+  web:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec tsc --noEmit
+      - run: pnpm lint
+      - run: pnpm build

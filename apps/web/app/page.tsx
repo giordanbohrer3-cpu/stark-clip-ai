@@ -26,7 +26,7 @@ export default function Dashboard() {
         { label: "Prontos p/ postar", value: s.clips.ready, hint: `${s.clips.edited} editados`, tone: "ok" as const },
         { label: "Agendados", value: s.posts.scheduled, hint: "na fila de publicação", tone: "cyan" as const },
         { label: "Entregues", value: s.posts.done, hint: "publicados / kits / exportados", tone: "ok" as const },
-        { label: "IA no mês", value: usd(s.ai.month_spend_usd), hint: s.ai.budget_usd ? `orçamento ${usd(s.ai.budget_usd)}` : "APIs pagas desligadas", tone: "violet" as const },
+        { label: "IA no mês", value: usd(s.ai.month_spend_usd), hint: cfg.data?.env.free_only ? "modo 100% grátis" : s.ai.budget_usd ? `orçamento ${usd(s.ai.budget_usd)}` : "APIs pagas desligadas", tone: "violet" as const },
         { label: "Armazenamento", value: `${num(s.storage_mb)} MB`, hint: "mídia + renders locais", tone: "ink" as const },
       ]
     : [];

@@ -1,7 +1,7 @@
 "use client";
 /* Cliente tipado da API v1 via proxy /api/engine (token fica no servidor Next). */
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { JobRow } from "./types";
+import type { JobRow, UploadSession, VideoRow } from "./types";
 
 export const BASE = "/api/engine";
 
@@ -77,6 +77,37 @@ export const fileUrl = (clipId: number, kind: string, download = false) =>
 
 export const activeJob = (jobs: JobRow[] | undefined) =>
   jobs?.find((j) => j.status === "running" || j.status === "queued");
+
+function sendBlob(path: string, blob: Blob, onProgress: (f: number) => void) {
+  return new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", `${BASE}${path}`);
+    xhr.setRequestHeader("content-type", "application/octet-stream");
+    xhr.upload.onprogress = (e) => e.lengthComputable && onProgress(e.loaded / e.total);
+    xhr.onload = () => (xhr.status < 300 ? resolve() : reject(new ApiError(xhr.status, xhr.responseText || xhr.statusText)));
+    xhr.onerror = () => reject(new ApiError(0, "falha de rede"));
+    xhr.send(blob);
+  });
+}
+
+/** Upload em partes de ~48 MB: retenta cada parte (3x) e não reenvia o que já foi. */
+export async function chunkedUpload(file: File, fields: Record<string, unknown>, onProgress: (f: number) => void) {
+  const s = await api<UploadSession>("/videos/uploads", { method: "POST", json: { ...fields, filename: file.name, size: file.size } });
+  for (let i = 0; i < s.chunks; i++) {
+    const part = file.slice(i * s.chunk_size, (i + 1) * s.chunk_size);
+    for (let attempt = 1; ; attempt++) {
+      try {
+        await sendBlob(`/videos/uploads/${s.upload_id}/${i}`, part, (f) => onProgress((i + f) / s.chunks));
+        break;
+      } catch (e) {
+        const fatal = e instanceof ApiError && e.status >= 400 && e.status < 500;
+        if (fatal || attempt >= 3) throw e;
+        await new Promise((r) => setTimeout(r, 1500 * attempt));
+      }
+    }
+  }
+  return api<VideoRow>(`/videos/uploads/${s.upload_id}/complete`, { method: "POST" });
+}
 
 /** Upload com progresso (fetch não expõe progresso de envio). */
 export function uploadWithProgress(path: string, form: FormData, onProgress: (f: number) => void) {

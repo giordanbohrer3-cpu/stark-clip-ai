@@ -48,7 +48,7 @@ Alternativa imediata: Metricool/Postiz (já fazem OAuth oficial) — ver INTEGRA
 
 ## Próximos passos (prioridade)
 
-1. Publicar o repositório (container é efêmero).
+1. ✅ Repositório publicado (GitHub privado) + CI grátis.
 2. Testar com vídeo real com rosto (podcast) e ajustar `reframe.py`.
 3. Conectar redes no Metricool (já ligado ao Claude) → agendar via Modo Operador.
 4. Alembic + login UI.

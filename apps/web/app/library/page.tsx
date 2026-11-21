@@ -3,7 +3,7 @@ import { Link2, Search, Star, UploadCloud, Wand2 } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { Badge, Button, Empty, Field, Input, Note, Panel, Progress, Select, Toggle } from "@/components/ui";
-import { api, BASE, uploadWithProgress, usePoll } from "@/lib/api";
+import { api, BASE, chunkedUpload, usePoll } from "@/lib/api";
 import { clock, mb, num } from "@/lib/format";
 import type { SettingsResp, VideoRow, YtResult } from "@/lib/types";
 
@@ -36,14 +36,12 @@ export default function Library() {
 
   const upload = async () => {
     if (!file) return;
-    const fd = new FormData();
-    fd.append("file", file);
-    Object.entries(form).forEach(([k, v]) => k !== "auto" && fd.append(k, String(v)));
-    if (refId) fd.append("reference_id", String(refId));
+    const { auto: _auto, ...fields } = form;
+    void _auto;
     setMsg(null);
     setProg(0);
     try {
-      const v = (await uploadWithProgress("/videos/upload", fd, setProg)) as VideoRow;
+      const v = await chunkedUpload(file, { ...fields, reference_id: refId }, setProg);
       if (form.auto) await api(`/videos/${v.id}/process`, { method: "POST", json: {} });
       setMsg({ tone: "ok", text: `“${v.title}” enviado${form.auto ? " e na fila de análise" : ""}.` });
       setFile(null);
