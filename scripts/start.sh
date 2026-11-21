@@ -20,6 +20,8 @@ service_on() {
 if [ "${STARK_SERVICE:-}" != "1" ] && service_on; then
   if ! healthy; then
     echo "Ligando o Clipzou em segundo plano…"
+    command -v notify-send >/dev/null 2>&1 && notify-send -i "$ROOT/apps/web/public/icons/icon-192.png" \
+      "Clipzou" "Ligando… o app abre sozinho em instantes." 2>/dev/null
     systemctl --user start clipzou.service 2>/dev/null ||
       launchctl kickstart "gui/$(id -u)/ai.clipzou" 2>/dev/null ||
       launchctl load -w "$HOME/Library/LaunchAgents/ai.clipzou.plist" 2>/dev/null
