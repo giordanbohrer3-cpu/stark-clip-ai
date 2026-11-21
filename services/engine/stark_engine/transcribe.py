@@ -37,8 +37,20 @@ def transcribe(audio: Path, duration: float, model_name: str | None = None, lang
                on_progress: Callable[[float], None] | None = None) -> dict:
     s = get_settings()
     name = model_name or s.whisper_model
+    try:
+        return _run(audio, duration, name, s.whisper_device, s.whisper_compute, language, on_progress)
+    except (RuntimeError, OSError, ValueError) as e:
+        if s.whisper_device == "cpu":
+            raise
+        log.warning("whisper em '%s' falhou (%s); usando CPU", s.whisper_device, e)
+        return _run(audio, duration, name, "cpu", "int8", language, on_progress)
+
+
+def _run(audio: Path, duration: float, name: str, device: str, compute: str, language: str | None,
+         on_progress: Callable[[float], None] | None) -> dict:
+    s = get_settings()
     with _lock:  # 1 transcrição por processo: controla RAM/CPU
-        model = _model(name, s.whisper_device, s.whisper_compute)
+        model = _model(name, device, compute)
         segments, info = model.transcribe(
             _load_wav16k(audio), language=language or s.language, word_timestamps=True, vad_filter=True,
             beam_size=5, condition_on_previous_text=False,

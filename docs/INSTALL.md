@@ -16,14 +16,14 @@ powershell -ExecutionPolicy Bypass -File scripts\install.ps1 -Tailscale
 **macOS / Linux**:
 
 ```bash
-git clone https://github.com/giordanbohrer3-cpu/stark-clip-ai.git && cd stark-clip-ai && bash scripts/install.sh
+cd ~ && { [ -d stark-clip-ai/.git ] || { [ -e stark-clip-ai ] && mv stark-clip-ai stark-clip-ai.antigo; git clone https://github.com/giordanbohrer3-cpu/stark-clip-ai.git; }; } && cd stark-clip-ai && git pull --ff-only && bash scripts/install.sh
 ```
 
 O repositório é privado: o `git clone` pede login do GitHub uma vez.
 
 ## 2. Usar e instalar no PC
 
-- Windows: duplo clique em `scripts\start.cmd` · outros: `pnpm start`
+- Windows: duplo clique em `scripts\start.cmd` · Linux: menu → **STARK CLIP AI** (ou `bash scripts/start.sh`) · macOS: `bash scripts/start.sh`
 - Abra http://127.0.0.1:3000/install no Chrome ou Edge → **Instalar app**
 
 ## 3. Celular (Tailscale, grátis e privado)

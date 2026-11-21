@@ -4,7 +4,7 @@
   "description": "STARK CLIP AI — estúdio autônomo de cortes (motor Python + HUD Next.js)",
   "scripts": {
     "setup": "cd services/engine && uv sync && cd ../../apps/web && pnpm install",
-    "dev": "concurrently -k -n api,worker,web -c cyan,magenta,blue \"npm:dev:api\" \"npm:dev:worker\" \"npm:dev:web\"",
+    "dev": "concurrently -k -n api,worker,web -c cyan,magenta,blue \"pnpm:dev:api\" \"pnpm:dev:worker\" \"pnpm:dev:web\"",
     "dev:api": "cd services/engine && uv run uvicorn stark_engine.main:app --host 127.0.0.1 --port 8787 --reload --reload-dir stark_engine",
     "dev:worker": "cd services/engine && uv run python -m stark_engine.worker",
     "dev:web": "cd apps/web && pnpm dev -H 127.0.0.1",
@@ -14,7 +14,7 @@
     "typecheck": "cd apps/web && pnpm exec tsc --noEmit",
     "lint": "cd apps/web && pnpm lint && cd ../../services/engine && uv run ruff check stark_engine",
     "build": "cd apps/web && pnpm build",
-    "start": "concurrently -k -n api,worker,web -c cyan,magenta,blue \"npm:start:api\" \"npm:start:worker\" \"npm:start:web\"",
+    "start": "concurrently -k -n api,worker,web -c cyan,magenta,blue \"pnpm:start:api\" \"pnpm:start:worker\" \"pnpm:start:web\"",
     "start:api": "cd services/engine && uv run uvicorn stark_engine.main:app --host 127.0.0.1 --port 8787",
     "start:worker": "cd services/engine && uv run python -m stark_engine.worker",
     "start:web": "cd apps/web && pnpm start -H 127.0.0.1 -p 3000",
