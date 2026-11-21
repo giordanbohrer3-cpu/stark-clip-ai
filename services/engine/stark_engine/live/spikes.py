@@ -91,5 +91,9 @@ class SpikeDetector:
             c.count, c.tokens, c.samples = 0, Counter(), []
         return out
 
+    def activity(self) -> dict[str, int]:
+        """Mensagens por minuto (média móvel) de cada canal ouvido. Chat ativo ≈ live no ar."""
+        return {name: round(c.mean * 60 / self.window) for name, c in self.chans.items() if c.n}
+
     def forget(self, channel: str) -> None:
         self.chans.pop(channel, None)

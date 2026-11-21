@@ -1,5 +1,5 @@
 "use client";
-import { ExternalLink, Flame, Link2, Radio, Scissors, ShieldCheck, Trash2, Zap } from "lucide-react";
+import { ExternalLink, Flame, Link2, MessageCircle, Radio, Scissors, ShieldCheck, Trash2, Zap } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Badge, Button, Empty, Field, Input, Note, Panel, Toggle } from "@/components/ui";
@@ -30,7 +30,7 @@ export default function RadarPage() {
   const st = usePoll<LiveStatus>("/live/status", 5000);
   const lives = usePoll<LiveRow[]>("/live/streams?limit=60", 15000);
   const moments = usePoll<MomentRow[]>("/live/moments?limit=40", 5000);
-  const hot = usePoll<HotVideo[]>("/live/videos", 60000);
+  const hot = usePoll<HotVideo[]>("/live/videos?limit=40", 60000);
   const chans = usePoll<ChannelRow[]>("/live/channels", 0);
   const [chan, setChan] = useState({ channel: "", evidence: "", confirm: false });
   const [camp, setCamp] = useState({ url: "", campaign: "", evidence: "", credit: "", confirm: false });
@@ -78,7 +78,9 @@ export default function RadarPage() {
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Tile label="lives no radar" value={num(s?.lives ?? 0)} tone="text-cyan" />
-        <Tile label="espectadores" value={num(s?.viewers ?? 0)} tone="text-warn" />
+        {s?.keyless
+          ? <Tile label="msgs/min no chat" value={num(s?.chat_rate ?? 0)} tone="text-warn" />
+          : <Tile label="espectadores" value={num(s?.viewers ?? 0)} tone="text-warn" />}
         <Tile label="momentos hoje" value={num(s?.moments_today ?? 0)} tone="text-violet" />
         <Tile label="cortes prontos" value={num(s?.clips_ready ?? 0)} tone="text-ok" />
       </div>
@@ -86,25 +88,22 @@ export default function RadarPage() {
       <div className="flex flex-wrap gap-2">
         <Chip ok={!!s?.radar_running} label={s?.radar_running ? "radar rodando" : "radar parado"} />
         <Chip ok={s?.chat === "conectado"} label={`chat: ${s?.chat ?? "—"} (${s?.chat_channels ?? 0} canais)`} />
-        <Chip ok={s?.twitch_api === "ok"} label={`Twitch: ${s?.twitch_configured ? s.twitch_api : "sem chave"}`} />
-        <Chip ok={s?.youtube_api === "ok"} label={`YouTube: ${s?.youtube_configured ? s.youtube_api : "sem chave"}`} />
-        <Chip ok={!!s?.twitch_connected} label={s?.twitch_connected ? `login: ${s.twitch_login}` : "Twitch não conectada"} />
+        <Chip ok={s?.twitch_configured ? s.twitch_api === "ok" : s?.chat === "conectado"}
+          label={s?.twitch_configured ? `Twitch API: ${s.twitch_api}` : `Twitch: ${s?.watching ?? 0} famosos vigiados pelo chat`} />
+        <Chip ok={!!s?.youtube_rss && !s.youtube_rss.startsWith("0/") && !s.youtube_rss.startsWith("erro") && s.youtube_rss !== "—"}
+          label={`YouTube: ${s?.youtube_rss ?? "—"}${s?.youtube_configured ? ` · API ${s.youtube_api}` : ""}`} />
+        {s?.twitch_connected && <Chip ok label={`login Twitch: ${s.twitch_login}`} />}
       </div>
-      {s && (!s.twitch_configured || !s.youtube_configured) && (
-        <Note tone="info">
-          Para o radar ver os famosos ao vivo, crie as chaves grátis e coloque em <code className="text-cyan">services/engine/.env</code>:
-          Twitch (dev.twitch.tv → Aplicativos → Registrar; redirecionamento <code className="text-cyan">http://localhost:3000/api/engine/live/twitch/callback</code>,
-          tipo Confidencial) → <code className="text-cyan">STARK_TWITCH_CLIENT_ID</code> e <code className="text-cyan">STARK_TWITCH_CLIENT_SECRET</code>;
-          YouTube (console.cloud.google.com → YouTube Data API v3 → chave) → <code className="text-cyan">STARK_YOUTUBE_API_KEY</code>.
-          Depois: menu → Clipzou → Atualizar e reiniciar. No Claude Code: “configura as chaves do radar”.
-        </Note>
+      {s && !s.radar_running && (
+        <Note tone="warn">Radar desligado: abra o Clipzou no PC (ícone no menu). Ele liga sozinho e se atualiza sozinho.</Note>
       )}
 
       <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
-        <Panel eyebrow={`${s?.game ?? "lives"} + top geral`} title="Bombando ao vivo" id="lives">
+        <Panel eyebrow={s?.keyless ? "famosos ao vivo (chat da Twitch)" : `${s?.game ?? "lives"} + top geral`} title="Bombando ao vivo" id="lives">
           {!lives.data?.length ? (
-            <Empty title="Nenhuma live no radar ainda" icon={<Radio className="size-6" />}>
-              Com as chaves da Twitch/YouTube o radar mostra as lives com mais gente agora, atualizadas a cada 90 s.
+            <Empty title="Nenhum famoso ao vivo agora" icon={<Radio className="size-6" />}>
+              Vigiando {s?.watching ?? 0} streamers famosos pelo chat. Quando um entra ao vivo e o chat esquenta, aparece aqui
+              (atualiza a cada 30 s). Mude a lista em Config → Radar.
             </Empty>
           ) : (
             <ul className="grid grid-cols-2 gap-3 md:grid-cols-3">
@@ -114,7 +113,8 @@ export default function RadarPage() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     {l.thumbnail_url && <img src={l.thumbnail_url} alt="" className="size-full object-cover" loading="lazy" />}
                     <span className="absolute left-2 top-2 flex items-center gap-1 rounded-md bg-black/75 px-1.5 py-0.5 font-mono text-xs">
-                      <span className="size-1.5 rounded-full bg-bad" />{num(l.viewers)}
+                      <span className="size-1.5 animate-pulse rounded-full bg-bad" />
+                      {l.viewers > 0 ? num(l.viewers) : <><MessageCircle className="size-3" />{num(l.chat_rate)}/min</>}
                     </span>
                     <span className="absolute right-2 top-2 rounded-md bg-black/75 px-1.5 py-0.5 text-[0.65rem] uppercase">{l.platform}</span>
                   </a>
@@ -161,22 +161,26 @@ export default function RadarPage() {
             )}
           </Panel>
 
-          <Panel eyebrow="youtube em alta (BR)" title="Vídeos bombando" id="yt">
-            {!hot.data?.length ? <p className="text-sm text-muted">Precisa da chave do YouTube.</p> : (
-              <ul className="space-y-2">
-                {hot.data.slice(0, 8).map((v) => (
+          <Panel eyebrow="youtubers famosos · views por hora" title="Vídeos bombando" id="yt">
+            {!hot.data?.length ? <p className="text-sm text-muted">Lendo os canais famosos… (até 1 min depois de ligar)</p> : (
+              <ul className="max-h-[560px] space-y-2 overflow-y-auto pr-1">
+                {hot.data.slice(0, 20).map((v, i) => (
                   <li key={v.id}>
                     <a href={v.url} target="_blank" rel="noreferrer" className="flex gap-3 rounded-lg p-1 hover:bg-white/5">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={v.thumbnail_url} alt="" className="h-12 w-20 shrink-0 rounded object-cover" loading="lazy" />
+                      <span className="w-4 shrink-0 pt-1 text-right font-mono text-[0.65rem] text-muted">{i + 1}</span>
+                      <span className="relative shrink-0">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={v.thumbnail_url} alt="" className="h-12 w-20 rounded object-cover" loading="lazy" />
+                        {v.short && <span className="absolute bottom-0.5 right-0.5 rounded bg-black/80 px-1 text-[0.55rem] uppercase text-violet">short</span>}
+                      </span>
                       <span className="min-w-0">
                         <span className="line-clamp-2 text-xs">{v.title}</span>
-                        <span className="text-[0.65rem] text-muted">{v.channel} · <b className="text-warn">{num(v.views_per_hour)}/h</b></span>
+                        <span className="text-[0.65rem] text-muted">{v.channel} · <b className="text-warn">{num(v.views_per_hour)}/h</b> · {num(v.views)} views{v.published_at ? ` · ${ago(v.published_at)}` : ""}</span>
                       </span>
                     </a>
                   </li>
                 ))}
-                <li className="pt-1 text-[0.65rem] text-muted">Referência para tendências. Corte só com autorização do dono.</li>
+                <li className="pt-1 text-[0.65rem] text-muted">Referência do que está bombando. Corte só de vídeo autorizado (pasta de entrada, campanha ou canal que te deu editor).</li>
               </ul>
             )}
           </Panel>
@@ -186,7 +190,9 @@ export default function RadarPage() {
       <Panel eyebrow="o que vira corte automático" title="Fontes autorizadas" id="sources" actions={
         s?.twitch_connected
           ? <Button size="sm" onClick={() => run("dc", () => api("/live/twitch", { method: "DELETE" }))}>Desconectar @{s.twitch_login}</Button>
-          : <Button size="sm" variant="primary" onClick={connect} loading={busy === "tw"} disabled={!s?.twitch_configured} icon={<Zap className="size-3.5" />}>Conectar Twitch</Button>
+          : s?.twitch_configured
+            ? <Button size="sm" variant="primary" onClick={connect} loading={busy === "tw"} icon={<Zap className="size-3.5" />}>Conectar Twitch</Button>
+            : <span className="text-xs text-muted">corte automático de live: precisa da chave grátis da Twitch (opcional)</span>
       }>
         <div className="grid gap-6 lg:grid-cols-2">
           <div>

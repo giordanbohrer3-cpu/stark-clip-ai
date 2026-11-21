@@ -24,6 +24,7 @@ from ..models import (
     EditedClip,
     EditedClipRead,
     Integration,
+    Job,
     LiveMoment,
     LiveMomentRead,
     LiveStream,
@@ -87,13 +88,16 @@ def status_(ctx: CtxDep) -> dict:
         fresh = (datetime.fromisoformat(st.get("updated_at", "")) > utcnow() - timedelta(seconds=30))
     except ValueError:
         pass
+    activity = st.get("activity") or {}
     return {"radar_running": bool(st.get("running")) and fresh, "chat": st.get("chat", "desligado"),
             "chat_channels": st.get("channels", 0), "twitch_api": st.get("twitch", "—"),
-            "youtube_api": st.get("youtube", "—"), "twitch_configured": twitch.configured(),
-            "youtube_configured": bool(get_settings().youtube_api_key),
+            "youtube_api": st.get("youtube", "—"), "youtube_rss": st.get("youtube_rss", "—"),
+            "twitch_configured": twitch.configured(), "youtube_configured": bool(get_settings().youtube_api_key),
+            "keyless": not twitch.configured(), "watching": len(ctx.settings["radar"].get("watch_twitch") or []),
+            "chat_rate": int(sum(v for v in activity.values() if isinstance(v, int | float))),
             "twitch_connected": bool(it), "twitch_login": it.account_login if it else None,
             "lives": int(lives[0]), "viewers": int(lives[1]), "moments_today": int(moments), "clips_ready": int(ready),
-            "game": ctx.settings["radar"].get("game")}
+            "game": ctx.settings["radar"].get("game"), "inbox": st.get("inbox") or {}}
 
 
 @router.get("/streams", response_model=list[LiveStreamRead], summary="Lives no radar (mais assistidas primeiro)")
@@ -101,13 +105,14 @@ def streams(ctx: CtxDep, platform: str = "", limit: int = 120) -> list[LiveStrea
     q = select(LiveStream).where(LiveStream.workspace_id == ctx.ws.id, LiveStream.live.is_(True))
     if platform:
         q = q.where(LiveStream.platform == platform)
-    auth = _authorized(ctx)
+    auth, activity = _authorized(ctx), read_state().get("activity") or {}
     out = []
     for r in ctx.session.exec(q.order_by(LiveStream.viewers.desc()).limit(min(limit, 300))):
         row = LiveStreamRead.model_validate(r.model_dump())
         row.authorized = r.channel in auth
+        row.chat_rate = int(activity.get(r.channel, 0)) if r.platform == "twitch" else 0
         out.append(row)
-    return out
+    return sorted(out, key=lambda x: (x.viewers, x.chat_rate), reverse=True)
 
 
 @router.get("/moments", response_model=list[LiveMomentRead], summary="Picos de chat detectados")
@@ -122,20 +127,28 @@ def moments(ctx: CtxDep, limit: int = 60) -> list[LiveMomentRead]:
     return out
 
 
-@router.get("/videos", response_model=list[dict], summary="Vídeos em alta no YouTube (views por hora)")
-def hot_videos(ctx: CtxDep) -> list[dict]:
-    out = []
-    for t in ctx.session.exec(select(Trend).where(Trend.workspace_id == ctx.ws.id, Trend.source == "youtube_api")):
+@router.get("/videos", response_model=list[dict], summary="Vídeos bombando no YouTube (views por hora)")
+def hot_videos(ctx: CtxDep, shorts: bool = True, limit: int = 60) -> list[dict]:
+    """YouTubers famosos (feed público, sem chave) + em alta no BR (API, com chave). Ordem: views/hora."""
+    out: dict[str, dict] = {}
+    rows = ctx.session.exec(select(Trend).where(Trend.workspace_id == ctx.ws.id,
+                                                Trend.source.in_(("youtube_api", "youtube_rss"))))
+    for t in rows:
         m = t.metric or {}
+        if (m.get("short") and not shorts) or not t.url:
+            continue
         try:
-            hours = max(1.0, (time.time() - datetime.fromisoformat(m["published_at"]).timestamp())
-                        / 3600)
-        except (KeyError, ValueError, AttributeError):
+            hours = max(1.0, (time.time() - datetime.fromisoformat(m["published_at"]).timestamp()) / 3600)
+        except (KeyError, ValueError, AttributeError, TypeError):
             hours = 24.0
-        out.append({"id": t.id, "title": t.label, "url": t.url, "channel": m.get("channel"), "views": m.get("views", 0),
-                    "views_per_hour": int(m.get("views", 0) / hours), "thumbnail_url": m.get("thumbnail_url"),
-                    "duration_s": m.get("duration_s", 0)})
-    return sorted(out, key=lambda x: x["views_per_hour"], reverse=True)
+        views = int(m.get("views") or 0)
+        item = {"id": t.id, "title": t.label, "url": t.url, "channel": m.get("channel"), "views": views,
+                "likes": int(m.get("likes") or 0), "views_per_hour": int(views / hours),
+                "thumbnail_url": m.get("thumbnail_url"), "duration_s": m.get("duration_s", 0),
+                "published_at": m.get("published_at"), "short": bool(m.get("short")), "source": t.source}
+        if t.url not in out or views > out[t.url]["views"]:
+            out[t.url] = item
+    return sorted(out.values(), key=lambda x: x["views_per_hour"], reverse=True)[:min(limit, 200)]
 
 
 # ------------------------------------------------------------------ canais autorizados
@@ -200,14 +213,14 @@ def twitch_connect(ctx: CtxDep) -> dict:
 def twitch_callback(ctx: CtxDep, code: str = "", state: str = "", error: str = "") -> RedirectResponse:
     ws_id, exp = _states.pop(state, (None, 0))
     if error or not code or ws_id != ctx.ws.id or time.time() > exp:
-        return RedirectResponse("/radar?twitch=erro", status_code=302)
+        return RedirectResponse("/?twitch=erro", status_code=302)
     try:
         twitch.exchange_code(ctx.session, ctx.ws.id, code)
     except twitch.TwitchError:
-        return RedirectResponse("/radar?twitch=erro", status_code=302)
+        return RedirectResponse("/?twitch=erro", status_code=302)
     ctx.audit("twitch_connect", "twitch")
     ctx.session.commit()
-    return RedirectResponse("/radar?twitch=ok", status_code=302)
+    return RedirectResponse("/?twitch=ok", status_code=302)
 
 
 @router.delete("/twitch", status_code=status.HTTP_204_NO_CONTENT, summary="Desconecta Twitch")
@@ -252,4 +265,30 @@ def feed(ctx: CtxDep, limit: int = 60) -> list[FeedItem]:
         c = ctx.session.get(ClipCandidate, ec.candidate_id)
         out.append(FeedItem(clip=clip_read(ec), video_id=v.id, origin=v.origin, channel=v.channel, source_url=v.url,
                             title=(ec.copy_text or {}).get("title") or (c.title if c else v.title)))
+    return out
+
+
+STAGE = {"analyze": "achando os melhores momentos", "render": "legendando e renderizando",
+         "import_url": "baixando vídeo da campanha", "twitch_clip": "clipando a live"}
+
+
+@feed_router.get("/feed/queue", response_model=list[dict], summary="Cortes sendo produzidos agora")
+def feed_queue(ctx: CtxDep) -> list[dict]:
+    s, out = ctx.session, []
+    rows = s.exec(select(Job).where(Job.workspace_id == ctx.ws.id, Job.status.in_(("queued", "running")),
+                                    Job.kind.in_(tuple(STAGE))).order_by(Job.created_at).limit(30))
+    for j in rows:
+        title = ""
+        if j.kind in ("analyze", "import_url"):
+            v = s.get(SourceVideo, j.ref_id)
+            title = v.title if v else ""
+        elif j.kind == "render":
+            ec = s.get(EditedClip, j.ref_id)
+            c = s.get(ClipCandidate, ec.candidate_id) if ec else None
+            title = c.title if c else ""
+        else:
+            m = s.get(LiveMoment, j.ref_id)
+            title = f"@{m.channel}" if m else ""
+        out.append({"id": j.id, "kind": j.kind, "status": j.status, "progress": round(j.progress or 0, 2),
+                    "stage": j.stage or STAGE[j.kind], "label": STAGE[j.kind], "title": title[:120]})
     return out

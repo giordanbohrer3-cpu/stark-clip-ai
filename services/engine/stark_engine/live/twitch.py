@@ -82,13 +82,25 @@ def top_streams(gid: str | None, languages: list[str] | None = None, limit: int 
         cursor = (d.get("pagination") or {}).get("cursor")
         if not cursor or not d.get("data"):
             break
-    return [{
+    return [_fmt(s) for s in out[:limit]]
+
+
+def _fmt(s: dict) -> dict:
+    return {
         "platform": "twitch", "channel": s["user_login"].lower(), "display_name": s["user_name"],
         "broadcaster_id": s["user_id"], "title": s.get("title", ""), "viewers": int(s.get("viewer_count", 0)),
         "game": s.get("game_name", ""), "language": s.get("language", ""),
         "thumbnail_url": s.get("thumbnail_url", "").replace("{width}", "440").replace("{height}", "248"),
         "started_at": s.get("started_at"), "url": f"https://twitch.tv/{s['user_login']}",
-    } for s in out[:limit]]
+    }
+
+
+def streams_by_login(logins: list[str]) -> list[dict]:
+    """Quem da lista de famosos está ao vivo agora (API oficial)."""
+    if not logins:
+        return []
+    d = helix("GET", "/streams", [("user_login", x) for x in logins[:100]] + [("first", 100)])
+    return [_fmt(s) for s in d.get("data", [])]
 
 
 def user_ids(logins: list[str]) -> dict[str, str]:

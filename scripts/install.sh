@@ -77,7 +77,7 @@ Comment=Máquina de clipes: radar ao vivo e cortes prontos
 Exec=bash "$ROOT/scripts/start.sh"
 Icon=$ROOT/apps/web/public/icons/icon-512.png
 StartupWMClass=Clipzou
-Terminal=true
+Terminal=false
 Categories=AudioVideo;Video;
 Actions=update;stop;
 
@@ -91,6 +91,17 @@ Exec=bash "$ROOT/scripts/stop.sh"
 EOF
 fi
 
-printf '\n\033[1;32m✔ Instalado.\033[0m Próximas vezes: abra "Clipzou" no menu ou rode: bash scripts/start.sh\n'
+mkdir -p "$HOME/Clipzou/Entrada"
+
+if [ "${STARK_NO_SERVICE:-}" != "1" ]; then
+  say "Segundo plano: liga com o PC e se atualiza sozinho"
+  if [ "${STARK_FROM_START:-}" = "1" ]; then
+    bash "$ROOT/scripts/service.sh" install  # já estamos dentro do Clipzou ligado: só registra
+  else
+    bash "$ROOT/scripts/service.sh" install --now
+  fi
+fi
+
+printf '\n\033[1;32m✔ Instalado.\033[0m O Clipzou liga sozinho com o PC e se atualiza sozinho. Abra pelo ícone "Clipzou".\n'
 [ "${STARK_NO_START:-}" = "1" ] && exit 0
 exec bash "$ROOT/scripts/start.sh"

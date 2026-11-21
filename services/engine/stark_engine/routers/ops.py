@@ -31,7 +31,7 @@ from ..models import (
 )
 from ..schemas import SettingsPatch, Stats, TrendIn
 from ..security import DEFAULT_SETTINGS, CtxDep, deep_merge, rel_data, require_role, safe_path
-from ..youtube import YouTubeError, search, trending
+from ..youtube import YouTubeError, channel_id, search, trending
 
 router = APIRouter(tags=["operação"])
 _storage_cache: dict = {"t": datetime.min.replace(tzinfo=UTC), "mb": 0.0}
@@ -85,6 +85,54 @@ def _validate(new: dict, old: dict, confirm_paid: bool) -> None:
             raise HTTPException(403, f"modo 100% grátis: rota {k} não pode usar {v}")
 
 
+def _items(values) -> list[str]:
+    """Lista ou texto → itens (separados por linha, vírgula ou espaço)."""
+    raw = values if isinstance(values, list) else [values]
+    return [x for v in raw for x in str(v).replace(",", " ").split()]
+
+
+def _logins(values) -> list[str]:
+    out: list[str] = []
+    for raw in _items(values):
+        v = str(raw).strip().lower().removeprefix("https://").removeprefix("http://").removeprefix("www.")
+        v = v.removeprefix("twitch.tv/").lstrip("@").strip("/")
+        if not v:
+            continue
+        if not (2 <= len(v) <= 25 and v.replace("_", "").isalnum() and v.isascii()):
+            raise HTTPException(422, f"streamer inválido: {raw}")
+        if v not in out:
+            out.append(v)
+    return out[:100]
+
+
+def _channels(values) -> list[str]:
+    out: list[str] = []
+    for raw in _items(values):
+        try:
+            cid = channel_id(str(raw))
+        except YouTubeError as e:
+            raise HTTPException(422, str(e)) from e
+        if cid not in out:
+            out.append(cid)
+    return out[:50]
+
+
+def _normalize(data: dict, current: dict) -> None:
+    """Limpa listas do radar e protege a declaração da pasta de entrada (só via /inbox/confirm)."""
+    radar, box = data.get("radar"), data.get("inbox")
+    if isinstance(radar, dict):
+        if "watch_twitch" in radar:
+            radar["watch_twitch"] = _logins(radar["watch_twitch"])
+        if "youtube_channels" in radar:
+            radar["youtube_channels"] = _channels(radar["youtube_channels"])
+    if isinstance(box, dict):
+        for k in ("confirmed", "confirmed_at"):
+            if k in box and box.pop(k) != current["inbox"].get(k):
+                raise HTTPException(422, "a declaração da pasta de entrada é feita em /inbox/confirm")
+        if len(str(box.get("path") or "")) > 500:
+            raise HTTPException(422, "caminho da pasta muito longo")
+
+
 @router.get("/settings", response_model=dict, summary="Configurações efetivas do workspace")
 def get_ws_settings(ctx: CtxDep) -> dict:
     return {"settings": ctx.settings, "providers": provider_status(ctx.ws),
@@ -98,6 +146,7 @@ def patch_settings(ctx: CtxDep, body: SettingsPatch, confirm_paid: bool = False)
     allowed = set(DEFAULT_SETTINGS)
     if not set(body.data) <= allowed:
         raise HTTPException(422, f"chaves permitidas: {sorted(allowed)}")
+    _normalize(body.data, ctx.settings)
     old = ctx.settings
     new = deep_merge(old, body.data)
     _validate(new, old, confirm_paid)

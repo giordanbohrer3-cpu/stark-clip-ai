@@ -1,6 +1,8 @@
 # Clipzou — instruções para o Claude Code
 
-Clipzou (ex-STARK CLIP AI): máquina de clipes pessoal. Radar ao vivo (Twitch/YouTube, picos de chat) + cortes prontos. Motor Python (`services/engine`, FastAPI + worker, FFmpeg, faster-whisper) + painel Next.js 16 (`apps/web`, PWA). Roda 100% local e grátis. Dono: uso pessoal, fala PT-BR, prefere respostas curtas.
+Clipzou (ex-STARK CLIP AI): máquina de clipes pessoal. Radar ao vivo (Twitch/YouTube, picos de chat) + cortes prontos.
+Funciona sem chave: famosos da Twitch pelo chat público, YouTubers famosos pelo feed RSS público, pasta de entrada
+(`~/Clipzou/Entrada`) que vira cortes sozinha. Roda em segundo plano (serviço): liga com o PC e se atualiza sozinho. Motor Python (`services/engine`, FastAPI + worker, FFmpeg, faster-whisper) + painel Next.js 16 (`apps/web`, PWA). Roda 100% local e grátis. Dono: uso pessoal, fala PT-BR, prefere respostas curtas.
 
 ## Regra principal: faça, não pergunte
 
@@ -14,8 +16,9 @@ Clipzou (ex-STARK CLIP AI): máquina de clipes pessoal. Radar ao vivo (Twitch/Yo
 |---|---|
 | Atualizar código | `git pull --ff-only` |
 | Instalar (idempotente) | `STARK_NO_START=1 bash scripts/install.sh` |
-| Ligar (atualiza sozinho; deixe em segundo plano) | `STARK_NO_BROWSER=1 bash scripts/start.sh` |
-| Atualizar e reiniciar | `bash scripts/update.sh` (em segundo plano) |
+| Ligar / abrir (usa o serviço) | `STARK_NO_BROWSER=1 bash scripts/start.sh` |
+| Serviço (liga com o PC, atualiza a cada 15 min) | `bash scripts/service.sh install --now` · `status` · `uninstall` |
+| Atualizar e reiniciar agora | `bash scripts/update.sh` (ou botão Config → Atualizar agora) |
 | Parar | `bash scripts/stop.sh` |
 | Saúde | `curl -s http://127.0.0.1:3000/api/engine/health` |
 | Abrir painel | `xdg-open http://127.0.0.1:3000` (macOS: `open`) |
@@ -25,9 +28,9 @@ Clipzou (ex-STARK CLIP AI): máquina de clipes pessoal. Radar ao vivo (Twitch/Yo
 
 Diagnóstico rápido: `git status -sb`, `command -v pnpm uv node ffmpeg`, curl na saúde.
 
-## Chaves do radar (grátis)
+## Chaves do radar (opcionais, grátis)
 
-Sem chaves o radar fica vazio. Pedido "configura as chaves/radar": abra `services/engine/.env` para o usuário (`xdg-open services/engine/.env`),
+Sem chaves o radar já funciona (chat público + RSS). Chaves liberam espectadores, top geral e corte automático de live. Pedido "configura as chaves/radar": abra `services/engine/.env` para o usuário (`xdg-open services/engine/.env`),
 explique em 3 linhas onde criar (Twitch: dev.twitch.tv → Aplicativos → Registrar, redirect `http://localhost:3000/api/engine/live/twitch/callback`,
 Confidencial; YouTube: Google Cloud → YouTube Data API v3 → chave). NÃO peça as chaves no chat. Quando ele salvar: `bash scripts/update.sh`
 em segundo plano e confira `curl -s http://127.0.0.1:3000/api/engine/live/status`. Depois: Radar → Conectar Twitch.

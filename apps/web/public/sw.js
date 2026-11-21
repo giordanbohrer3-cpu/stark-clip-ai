@@ -1,6 +1,6 @@
 /* Clipzou service worker: instalação PWA + página offline.
    Regras: /api nunca é cacheado; /_next/static (nomes com hash) cache-first; páginas network-first. */
-const VERSION = "clipzou-v3";
+const VERSION = "clipzou-v4";
 const MAX_STATIC = 250; // evita acumular arquivos de versões antigas
 const OFFLINE = "/offline.html";
 const PRECACHE = [OFFLINE, "/icons/icon-192.png", "/icons/icon-512.png"];

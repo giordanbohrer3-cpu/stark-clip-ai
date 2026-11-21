@@ -42,7 +42,33 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "branding": {"logo_path": None, "logo_opacity": 0.9, "logo_scale": 0.14},
     "cadence": {"min_gap_minutes": 90, "quiet_start": 0, "quiet_end": 7, "tz_offset_h": -3},
     "radar": {"enabled": True, "game": "Grand Theft Auto VI", "languages": [], "max_channels": 80,
-              "sensitivity": 3.0, "min_rate": 12, "youtube_query": "GTA 6 ao vivo"},
+              "sensitivity": 3.0, "min_rate": 12, "youtube_query": "GTA 6 ao vivo",
+              # sem chave: streamers famosos vigiados pelo chat público da Twitch
+              "watch_twitch": ["gaules", "casimiro", "alanzoka", "loud_coringa", "cellbit", "baiano", "jukes",
+                               "piuzinho", "paulinholoko", "xqc", "kaicenat", "summit1g", "caseoh_", "jynxzi",
+                               "ibai"],
+              # sem chave: feed RSS público dos YouTubers famosos (IDs UC…)
+              "youtube_channels": [
+                  "UCIwspRtKNszHhIhl36gREjQ",  # alanzoka
+                  "UCWKtHaeXVzUscYGcm0hEunw",  # BRKsEDU
+                  "UCC43JmOyrcWNUtwki8Jml2Q",  # Cellbit
+                  "UCIPA6iWNaoetaa1T46RkzXw",  # AuthenticGames
+                  "UCIXguhHCl8eDTkXpEuiGPUA",  # Jazzghost
+                  "UC5mZsx_OVnc4XmG9rWU2p3A",  # T3ddy
+                  "UCbTVTephX30ZhQF5zwFppBg",  # RezendeEvil
+                  "UCBykxRXc4bMrdhE_CSwWxQg",  # igaoplay
+                  "UC0aP2AAWHtF2_hHWZyxrWSw",  # DavyJonesGTA
+                  "UCyU4tSZFzaGmio-K_8WYWIg",  # flowgamesbr
+                  "UCrTKytJZ5ed8JiRB-qS37vQ",  # Enaldinho
+                  "UCIvBHgnnLSVr9enuPvBuwyw",  # Piuzinho
+                  "UCYALxwppPJjYyTMEwwEcNCQ",  # LubaTV
+                  "UCjBO43ykxlSs3j7F7EXcBUQ",  # Tazercraft
+                  "UCV306eHqgo0LvBf3Mh36AHg",  # Felipe Neto
+                  "UCIPPMRA040LQr5QPyJEbmXA",  # MrBeast Gaming
+              ]},
+    # pasta de entrada: vídeos autorizados jogados aqui viram cortes no feed (declaração única em /inbox/confirm)
+    "inbox": {"enabled": True, "path": "", "confirmed": False, "confirmed_at": None, "rights_type": "own",
+              "holder": "", "allows_commercial": True, "layout": "auto", "credit": ""},
 }
 
 

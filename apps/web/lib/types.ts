@@ -79,7 +79,9 @@ export type Settings = {
   branding: { logo_path: string | null; logo_opacity: number; logo_scale: number };
   cadence: { min_gap_minutes: number; quiet_start: number; quiet_end: number; tz_offset_h: number };
   radar: { enabled: boolean; game: string; languages: string[]; max_channels: number; sensitivity: number;
-    min_rate: number; youtube_query: string };
+    min_rate: number; youtube_query: string; watch_twitch: string[]; youtube_channels: string[] };
+  inbox: { enabled: boolean; path: string; confirmed: boolean; confirmed_at: string | null; rights_type: string;
+    holder: string; allows_commercial: boolean; layout: string; credit: string };
 };
 export type SettingsResp = { settings: Settings; providers: ProviderStatus[]; env: { youtube_api: boolean; whisper_model: string; free_only: boolean } };
 export type Trend = {
@@ -96,10 +98,13 @@ export type LiveStatus = {
   radar_running: boolean; chat: string; chat_channels: number; twitch_api: string; youtube_api: string;
   twitch_configured: boolean; youtube_configured: boolean; twitch_connected: boolean; twitch_login: string | null;
   lives: number; viewers: number; moments_today: number; clips_ready: number; game: string | null;
+  keyless: boolean; youtube_rss: string; watching: number; chat_rate: number;
+  inbox: { status?: string; imported?: number; error?: string };
 };
 export type LiveRow = {
   id: number; platform: "twitch" | "youtube"; channel: string; display_name: string; title: string; viewers: number;
   game: string; language: string; thumbnail_url: string; url: string; live: boolean; seen_at: string; authorized: boolean;
+  chat_rate: number;
 };
 export type MomentRow = {
   id: number; platform: string; channel: string; at: string; rate: number; baseline: number; score: number; viewers: number;
@@ -112,6 +117,12 @@ export type ChannelRow = {
 };
 export type HotVideo = {
   id: number; title: string; url: string; channel: string; views: number; views_per_hour: number; thumbnail_url: string;
-  duration_s: number;
+  duration_s: number; likes: number; published_at: string | null; short: boolean; source: "youtube_rss" | "youtube_api";
 };
+export type InboxStatus = {
+  path: string; exists: boolean; enabled: boolean; confirmed: boolean; confirmed_at: string | null; rights_type: string;
+  holder: string; pending: { name: string; size_mb: number; copying: boolean }[]; imported: number;
+  errors: { title: string; error: string | null }[];
+};
+export type QueueItem = { id: number; kind: string; status: string; progress: number; stage: string; label: string; title: string };
 export type FeedItem = { clip: Clip; video_id: number; title: string; origin: string; channel: string | null; source_url: string | null };

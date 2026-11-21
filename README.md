@@ -2,6 +2,10 @@
 
 > Máquina de clipes: radar das lives e vídeos bombando (Twitch, YouTube) + cortes prontos para TikTok, Reels e Shorts.
 
+Funciona **sem chave nenhuma**: radar dos streamers famosos (chat público da Twitch) e dos YouTubers famosos (feed RSS
+público), e uma **pasta de entrada** (`~/Clipzou/Entrada`) onde cada vídeo autorizado vira cortes prontos no Feed, sozinho.
+Roda em segundo plano: liga com o PC e se atualiza sozinho do GitHub.
+
 Central de comando para transformar **vídeos autorizados** em cortes verticais prontos: transcrição local, 3 cortes por vídeo com score explicável, legendas animadas, reframe 9:16, render, agenda e publicação assistida.
 
 > Link do YouTube não é autorização. O app não baixa vídeos do YouTube. Envie o original (seu canal: YouTube Studio → Download) ou material licenciado/permitido pelo criador.

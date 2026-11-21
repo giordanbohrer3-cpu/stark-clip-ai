@@ -1,16 +1,20 @@
 # Instalação do Clipzou (PC + celular) — 100% grátis
 
-## 0. Chaves do radar (grátis, 5 min)
+## 0. Funciona sem chave
 
-O instalador cria `services/engine/.env`. Preencha e reinicie (menu → Clipzou → Atualizar e reiniciar):
+- **Radar:** vigia streamers famosos da Twitch pelo chat público e lê os vídeos dos YouTubers famosos pelo feed público.
+  Mude as listas em **Config → Radar**.
+- **Pasta de entrada:** `~/Clipzou/Entrada`. No **Feed**, ative a pasta (declaração única de que os vídeos são seus ou
+  autorizados) e jogue vídeos nela: os cortes 9:16 legendados aparecem no Feed sozinhos.
+- **Segundo plano:** o Clipzou liga com o PC, reinicia se cair e se atualiza sozinho do GitHub (a cada 15 min ou em
+  **Config → Atualizar agora**). Sem terminal.
+
+Chaves grátis **opcionais** (`services/engine/.env`, depois Config → Atualizar agora):
 
 - **Twitch:** dev.twitch.tv → Console → Aplicativos → Registrar. Redirecionamento: `http://localhost:3000/api/engine/live/twitch/callback`,
-  tipo **Confidencial** → `STARK_TWITCH_CLIENT_ID` e `STARK_TWITCH_CLIENT_SECRET`.
+  tipo **Confidencial** → `STARK_TWITCH_CLIENT_ID` e `STARK_TWITCH_CLIENT_SECRET`. Libera espectadores, top geral e
+  **Conectar Twitch** (corte automático dos canais que te deram editor).
 - **YouTube:** console.cloud.google.com → ativar **YouTube Data API v3** → Credenciais → Chave de API → `STARK_YOUTUBE_API_KEY`.
-
-Depois, no Radar: **Conectar Twitch** (para cortar canais que te deram editor).
-
-O STARK roda no **seu PC** (motor de vídeo). O app instalado (PWA) é a tela de controle no PC e no celular.
 
 ## 1. PC (uma vez)
 
@@ -33,10 +37,12 @@ O repositório é privado: o `git clone` pede login do GitHub uma vez.
 
 ## 2. Usar e instalar no PC
 
-- Windows: duplo clique em `scripts\start.cmd` · Linux: menu → **STARK CLIP AI** (ou `bash scripts/start.sh`) · macOS: `bash scripts/start.sh`
+- Linux/macOS: o instalador registra o serviço (liga com o PC). Abra pelo ícone **Clipzou** no menu.
+- Windows: duplo clique em `scripts\start.cmd`.
 - Abra http://127.0.0.1:3000/install no Chrome ou Edge → **Instalar app**
 
-**Atualização automática:** toda vez que o STARK liga, ele baixa a versão nova do GitHub e recompila. Os apps do PC e do celular mostram a versão nova ao abrir. Com ele já ligado: menu → STARK CLIP AI → **Atualizar e reiniciar** (ou `bash scripts/update.sh`).
+**Atualização automática:** o serviço confere o GitHub a cada 15 min, baixa a versão nova, recompila e reinicia sozinho.
+Os apps do PC e do celular mostram a versão nova ao abrir. Para forçar: **Config → Atualizar agora**.
 
 ## 3. Celular (Tailscale, grátis e privado)
 

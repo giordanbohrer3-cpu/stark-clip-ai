@@ -395,6 +395,7 @@ class LiveStreamRead(LiveStreamBase):
     id: int
     seen_at: datetime
     authorized: bool = False
+    chat_rate: int = 0  # msgs/min no chat (radar sem chave)
 
 
 class LiveMomentBase(SQLModel):

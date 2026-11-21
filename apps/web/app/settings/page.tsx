@@ -1,7 +1,7 @@
 "use client";
-import { ImageUp, Save } from "lucide-react";
+import { ImageUp, RefreshCw, Save } from "lucide-react";
 import { useState } from "react";
-import { Badge, Button, Field, Input, Note, Panel, Select, Toggle } from "@/components/ui";
+import { Badge, Button, Field, Input, Note, Panel, Select, Textarea, Toggle } from "@/components/ui";
 import { api, ApiError, usePoll } from "@/lib/api";
 import { ago, usd } from "@/lib/format";
 import type { Settings, SettingsResp } from "@/lib/types";
@@ -19,6 +19,8 @@ export default function SettingsPage() {
   const cfg = usePoll<SettingsResp>("/settings", 0);
   const usage = usePoll<Usage[]>("/ai/usage?limit=20", 0);
   const audit = usePoll<Audit[]>("/audit?limit=30", 10000);
+  const ver = usePoll<{ commit: string | null; date: string | null; service: boolean }>("/system/version", 0);
+  const [checking, setChecking] = useState(false);
   const [draft, setS] = useState<Settings | null>(null);
   const s = draft ?? cfg.data?.settings ?? null;
   const [msg, setMsg] = useState<{ tone: "ok" | "bad" | "warn"; text: string } | null>(null);
@@ -57,14 +59,36 @@ export default function SettingsPage() {
     }
   };
 
+  const checkUpdate = async () => {
+    setChecking(true);
+    setMsg(null);
+    try {
+      const r = await api<{ update: boolean; message: string }>("/system/update", { method: "POST" });
+      setMsg({ tone: r.update ? "warn" : "ok", text: r.message });
+    } catch (e) {
+      setMsg({ tone: "bad", text: (e as Error).message });
+    } finally {
+      setChecking(false);
+    }
+  };
+
   if (!s || !cfg.data) return <p className="text-muted">carregando…</p>;
   const set = <K extends keyof Settings>(k: K, v: Partial<Settings[K]>) => setS({ ...s, [k]: { ...(s[k] as object), ...v } });
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold">Configurações</h1>
-        <Button variant="primary" onClick={save} loading={busy} icon={<Save className="size-4" />}>Salvar</Button>
+        <div>
+          <h1 className="text-xl font-semibold">Configurações</h1>
+          <p className="text-xs text-muted">
+            versão {ver.data?.commit ?? "—"}{ver.data?.date ? ` · ${ago(ver.data.date)}` : ""} ·{" "}
+            {ver.data?.service ? "liga com o PC e se atualiza sozinho" : "abra pelo ícone Clipzou para ativar o modo automático"}
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={checkUpdate} loading={checking} icon={<RefreshCw className="size-4" />}>Atualizar agora</Button>
+          <Button variant="primary" onClick={save} loading={busy} icon={<Save className="size-4" />}>Salvar</Button>
+        </div>
       </div>
       {msg && <Note tone={msg.tone}>{msg.text}</Note>}
 
@@ -158,8 +182,17 @@ export default function SettingsPage() {
             <Field label="Máx. de lives no radar"><Input type="number" min={10} max={100} value={s.radar.max_channels} onChange={(e) => set("radar", { max_channels: +e.target.value })} /></Field>
             <Field label={`Sensibilidade do pico ${s.radar.sensitivity}`} hint="menor = mais momentos"><input type="range" min={2} max={5} step={0.5} value={s.radar.sensitivity} className="w-full" onChange={(e) => set("radar", { sensitivity: +e.target.value })} /></Field>
             <Field label="Mínimo de msgs por 10 s"><Input type="number" min={5} max={200} value={s.radar.min_rate} onChange={(e) => set("radar", { min_rate: +e.target.value })} /></Field>
+            <Field label="Streamers famosos vigiados (Twitch)" hint="um por linha: gaules ou twitch.tv/gaules. Funciona sem chave.">
+              <Textarea rows={6} value={(s.radar.watch_twitch ?? []).join("\n")} onChange={(e) => set("radar", { watch_twitch: e.target.value.split("\n") })} />
+            </Field>
+            <Field label="YouTubers famosos (ID do canal)" hint="um por linha: UC… ou youtube.com/channel/UC… (Canal → Sobre → Compartilhar → Copiar ID)">
+              <Textarea rows={6} value={(s.radar.youtube_channels ?? []).join("\n")} onChange={(e) => set("radar", { youtube_channels: e.target.value.split("\n") })} />
+            </Field>
+            <Field label="Pasta de entrada" hint="vazio = ~/Clipzou/Entrada. Vídeos jogados aqui viram cortes no Feed." className="sm:col-span-2">
+              <Input value={s.inbox?.path ?? ""} placeholder="~/Clipzou/Entrada" onChange={(e) => set("inbox", { path: e.target.value })} />
+            </Field>
           </div>
-          <p className="mt-2 text-xs text-muted">Mudanças valem após reiniciar (menu → Clipzou → Atualizar e reiniciar).</p>
+          <p className="mt-2 text-xs text-muted">O radar aplica as mudanças sozinho em até 1 min.</p>
         </Panel>
 
         <Panel eyebrow="cadência" title="Ritmo de publicação" id="cad">
