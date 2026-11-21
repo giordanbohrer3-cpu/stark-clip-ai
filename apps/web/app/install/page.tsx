@@ -65,7 +65,7 @@ export default function InstallPage() {
   const { origin, secure, local } = useOrigin();
   const health = usePoll<Health>("/health", 10000);
   const [tab, setTab] = useState<Tab | null>(null);
-  const phone = usePoll<{ url: string; tailscale_url: string | null; tailscale_serving: boolean | null }>(CLOUD ? null : "/system/phone", 0);
+  const phone = usePoll<{ url: string; tailscale_url: string | null; tailscale_serving: boolean | null; tailscale_other: boolean }>(CLOUD ? null : "/system/phone", 0);
   const [typedUrl, setPhoneUrl] = useState("");
   const phoneUrl = typedUrl || phone.data?.url || "";
   const [sw, setSw] = useState<boolean | null>(null);
@@ -137,7 +137,10 @@ export default function InstallPage() {
             </Field>
           )}
           {local && phone.data?.tailscale_serving === false && !typedUrl && (
-            <Note tone="warn">O Tailscale está ligado, mas ainda não abre o Clipzou: rode uma vez no PC <code className="text-cyan">sudo tailscale serve --bg 3000</code>.</Note>
+            <Note tone="warn">
+              {phone.data?.tailscale_other ? "O link do Tailscale está apontando para outro app (ex.: o do Codex)." : "O Tailscale está ligado, mas ainda não abre o Clipzou."}{" "}
+              Rode uma vez no PC: <code className="text-cyan">sudo tailscale serve reset && sudo tailscale serve --bg 3000</code>
+            </Note>
           )}
           {svg ? (
             <div className="mt-4 flex flex-col items-center gap-2">

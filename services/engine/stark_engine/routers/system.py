@@ -45,8 +45,10 @@ def _tailscale() -> dict:
                 data = {"url": f"https://{dns}", "serving": None}
                 sv = subprocess.run([exe, "serve", "status", "--json"], capture_output=True, text=True, timeout=5,
                                     check=False)
-                if sv.returncode == 0:
-                    data["serving"] = bool(json.loads(sv.stdout or "{}"))
+                if sv.returncode == 0:  # o link do Tailscale aponta para o Clipzou (porta 3000)?
+                    raw = sv.stdout or "{}"
+                    data["serving"] = "127.0.0.1:3000" in raw or "localhost:3000" in raw
+                    data["other"] = bool(json.loads(raw)) and not data["serving"]
         except (OSError, ValueError, subprocess.TimeoutExpired):
             data = {}
     _ts_cache.update(at=time.time(), data=data)
@@ -57,7 +59,7 @@ def _tailscale() -> dict:
 def phone(ctx: CtxDep) -> dict:
     app_url, ts = cloud.load_config()["app_url"], _tailscale()
     return {"url": app_url or ts.get("url") or "", "app_url": app_url, "tailscale_url": ts.get("url"),
-            "tailscale_serving": ts.get("serving")}
+            "tailscale_serving": ts.get("serving"), "tailscale_other": bool(ts.get("other"))}
 
 
 def _service_on() -> bool:
