@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 import signal
+import threading
 import time
 
 from . import jobqueue
@@ -70,8 +71,9 @@ def main() -> None:
         global _stop
         _stop = True
 
-    signal.signal(signal.SIGTERM, _sig)
-    signal.signal(signal.SIGINT, _sig)
+    if threading.current_thread() is threading.main_thread():  # modo embutido roda em thread
+        signal.signal(signal.SIGTERM, _sig)
+        signal.signal(signal.SIGINT, _sig)
     log.info("worker iniciado (poll %.1fs)", get_settings().worker_poll_s)
     while not _stop:
         if not run_once():

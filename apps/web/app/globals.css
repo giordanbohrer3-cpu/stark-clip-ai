@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+/* STARK HUD — tokens */
+:root {
+  --bg: #04060c;
+  --bg-2: #070b16;
+  --surface: rgb(12 18 34 / 0.72);
+  --surface-2: rgb(18 26 48 / 0.8);
+  --line: rgb(56 189 248 / 0.16);
+  --line-strong: rgb(34 211 238 / 0.45);
+  --text: #e6f1ff;
+  --muted: #8ea4c8;
+  --cyan: #22d3ee;
+  --blue: #3b82f6;
+  --violet: #8b5cf6;
+  --ok: #34d399;
+  --warn: #fbbf24;
+  --bad: #f87171;
+  --radius: 14px;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-cyan: var(--cyan);
+  --color-blue: var(--blue);
+  --color-violet: var(--violet);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-bad: var(--bad);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100dvh;
+  background:
+    radial-gradient(1100px 600px at 85% -10%, rgb(139 92 246 / 0.16), transparent 60%),
+    radial-gradient(900px 500px at -10% 10%, rgb(34 211 238 / 0.12), transparent 55%),
+    linear-gradient(var(--bg), var(--bg-2));
+  background-attachment: fixed;
+}
+
+/* grade holográfica sutil */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgb(34 211 238 / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(34 211 238 / 0.035) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+  z-index: 0;
+}
+
+.hud-panel {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  backdrop-filter: blur(14px) saturate(1.2);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.02) inset, 0 18px 40px -24px rgb(34 211 238 / 0.35);
+}
+/* cantos tipo HUD */
+.hud-panel::before,
+.hud-panel::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: var(--line-strong);
+  pointer-events: none;
+}
+.hud-panel::before {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid;
+  border-left: 2px solid;
+  border-top-left-radius: var(--radius);
+}
+.hud-panel::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid;
+  border-right: 2px solid;
+  border-bottom-right-radius: var(--radius);
+}
+
+.hud-label {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.glow-text {
+  text-shadow: 0 0 18px rgb(34 211 238 / 0.45);
+}
+
+:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+input,
+select,
+textarea {
+  color-scheme: dark;
+}
+
+input[type="range"] {
+  accent-color: var(--cyan);
+}
+
+.scan {
+  background: linear-gradient(90deg, transparent, rgb(34 211 238 / 0.55), transparent);
+  background-size: 40% 100%;
+  background-repeat: no-repeat;
+  animation: scan 1.6s linear infinite;
+}
+@keyframes scan {
+  from {
+    background-position: -40% 0;
+  }
+  to {
+    background-position: 140% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
