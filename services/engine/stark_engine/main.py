@@ -13,7 +13,7 @@ from sqlalchemy import text
 from . import __version__, media
 from .config import get_settings
 from .db import get_engine, init_db, session_scope
-from .routers import clips, ops, publish, videos
+from .routers import clips, live, ops, publish, videos
 from .schemas import Health
 from .security import bootstrap
 
@@ -63,6 +63,7 @@ def health() -> Health:
                   youtube_api=bool(s.youtube_api_key))
 
 
-for r in (videos.router, videos.cand_router, clips.router, publish.router, ops.router):
+for r in (videos.router, videos.cand_router, clips.router, publish.router, ops.router, live.router,
+          live.feed_router):
     api.include_router(r)
 app.include_router(api)

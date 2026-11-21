@@ -77,7 +77,7 @@ class ChatMonitor:
                     msg = parse_privmsg(line)
                     if msg:
                         self.on_message(*msg)
-            except (OSError, asyncio.TimeoutError, ConnectionError) as e:
+            except (TimeoutError, OSError, ConnectionError) as e:
                 self.connected, self.error = False, f"{type(e).__name__}: {e}"[:200]
                 log.warning("chat Twitch caiu (%s); reconectando em %ss", self.error, backoff)
                 await asyncio.sleep(backoff)

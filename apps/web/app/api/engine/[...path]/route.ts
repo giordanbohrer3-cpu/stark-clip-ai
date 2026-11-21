@@ -5,7 +5,7 @@ import path from "node:path";
 
 const ENGINE = process.env.STARK_ENGINE_URL ?? "http://127.0.0.1:8787";
 const PASS_REQ = ["content-type", "range", "accept", "if-none-match", "if-range"];
-const PASS_RES = ["content-type", "content-length", "content-range", "accept-ranges", "content-disposition", "etag", "last-modified"];
+const PASS_RES = ["content-type", "content-length", "content-range", "accept-ranges", "content-disposition", "etag", "last-modified", "location"];
 
 function token(): string {
   if (process.env.STARK_API_TOKEN) return process.env.STARK_API_TOKEN;

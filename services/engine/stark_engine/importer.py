@@ -17,7 +17,7 @@ BLOCKED_HOSTS = ("youtube.com", "youtu.be", "www.youtube.com", "m.youtube.com")
 MAX_REDIRECTS = 6
 
 
-class ImportError_(ValueError):  # noqa: N801 - evita colisão com ImportError embutido
+class ImportError_(ValueError):
     pass
 
 
@@ -52,8 +52,9 @@ def check_public(url: str) -> None:
             raise ImportError_("endereço interno bloqueado")
 
 
-def download(url: str, dst: Path, limit_mb: int, on_progress=None, guard=check_public) -> int:
+def download(url: str, dst: Path, limit_mb: int, on_progress=None, guard=None) -> int:
     """Baixa seguindo redirecionamentos validados. Retorna bytes gravados."""
+    guard = guard or check_public
     url = normalize(url)
     limit = limit_mb * 1024 * 1024
     with httpx.Client(timeout=httpx.Timeout(30, read=120), follow_redirects=False) as client:

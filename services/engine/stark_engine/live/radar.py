@@ -156,7 +156,7 @@ async def main() -> None:
             try:
                 channels = await asyncio.to_thread(refresh, st)
                 chat.set_channels(channels)
-            except Exception as e:  # noqa: BLE001 - radar nunca deve cair por uma fonte
+            except Exception as e:
                 log.exception("refresh falhou")
                 st["error"] = str(e)[:200]
         for sp in det.tick(now):
