@@ -11,18 +11,32 @@ say() { printf '\n\033[1;36m▶ %s\033[0m\n' "$*"; }
 SUDO=""; [ "$(id -u)" -ne 0 ] && SUDO="sudo"
 
 say "1/5 Sistema: git, ffmpeg, curl"
-if have brew; then
-  for p in git ffmpeg; do have "$p" || brew install "$p"; done
-elif have apt-get; then
-  $SUDO apt-get update -q
-  $SUDO apt-get install -y -q git ffmpeg curl ca-certificates
-elif have dnf; then
-  $SUDO dnf install -y git curl ffmpeg || $SUDO dnf install -y git curl ffmpeg-free
-elif have pacman; then
-  $SUDO pacman -Sy --needed --noconfirm git ffmpeg curl
+MISSING=""
+for p in git ffmpeg ffprobe curl; do have "$p" || MISSING="$MISSING $p"; done
+MISSING="${MISSING/ffprobe/}"
+if [ -z "${MISSING// /}" ]; then
+  echo "ok: git, ffmpeg, curl já instalados"
+elif have brew; then
+  brew install $MISSING
 else
-  echo "Não reconheci o gerenciador de pacotes. Instale git, ffmpeg e curl e rode de novo." >&2
-  exit 1
+  if [ -n "$SUDO" ] && ! sudo -n true 2>/dev/null && [ ! -t 0 ]; then
+    echo "Faltam:$MISSING. Rode no seu terminal e depois repita este instalador:" >&2
+    if have apt-get; then echo "  sudo apt install -y git ffmpeg curl" >&2
+    elif have dnf; then echo "  sudo dnf install -y git ffmpeg curl" >&2
+    else echo "  sudo pacman -S --needed git ffmpeg curl" >&2; fi
+    exit 2
+  fi
+  if have apt-get; then
+    $SUDO apt-get update -q
+    $SUDO apt-get install -y -q git ffmpeg curl ca-certificates
+  elif have dnf; then
+    $SUDO dnf install -y git curl ffmpeg || $SUDO dnf install -y git curl ffmpeg-free
+  elif have pacman; then
+    $SUDO pacman -Sy --needed --noconfirm git ffmpeg curl
+  else
+    echo "Não reconheci o gerenciador de pacotes. Instale git, ffmpeg e curl e rode de novo." >&2
+    exit 1
+  fi
 fi
 
 say "2/5 uv (gerencia o Python sozinho)"
