@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Suspense, useState } from "react";
 import { api, usePoll } from "@/lib/api";
+import { InstallChip } from "./pwa";
 import type { Health, SettingsResp } from "@/lib/types";
 
 const NAV = [
@@ -85,17 +86,19 @@ export function Shell({ children }: { children: ReactNode }) {
             motor {online ? "online" : "offline"} {health.data && `v${health.data.version}`}
           </p>
           {health.data && <p className="font-mono">whisper: {health.data.whisper_model}</p>}
+          <Link href="/install" className="block text-cyan hover:underline">Instalar no celular/PC</Link>
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-line bg-black/40 px-4 py-3 backdrop-blur sm:px-6">
+        <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-line bg-black/40 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur sm:px-6">
           <span className="text-sm font-semibold lg:hidden">STARK CLIP AI</span>
           <div className="hidden items-center gap-2 text-xs text-muted lg:flex">
             <span className="hud-label">modo</span>
             <span className="font-mono text-ink">{cfg.data?.settings.autonomy ?? "—"}</span>
           </div>
           <div className="flex items-center gap-2">
+            <InstallChip />
             {!online && <span className="rounded-full border border-bad/50 px-2 py-0.5 text-xs text-bad">motor offline</span>}
             <button onClick={toggle} disabled={busy || !cfg.data} aria-pressed={!!paused}
               className={clsx("inline-flex h-9 items-center gap-2 rounded-[10px] border px-3 text-xs font-semibold uppercase tracking-wider",
@@ -115,7 +118,7 @@ export function Shell({ children }: { children: ReactNode }) {
         </main>
       </div>
 
-      <nav aria-label="Principal (móvel)" className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-line bg-black/80 backdrop-blur lg:hidden">
+      <nav aria-label="Principal (móvel)" className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-line bg-black/85 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
         <Suspense fallback={<NavItems mobile />}><LiveNav mobile /></Suspense>
       </nav>
     </div>

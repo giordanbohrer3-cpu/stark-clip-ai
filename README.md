@@ -18,6 +18,10 @@ Central de comando para transformar **vídeos autorizados** em cortes verticais 
 
 Software 100% open source (FastAPI, Next.js, FFmpeg, faster-whisper, OpenCV). Fontes OFL.
 
+## Instalar (PC + celular como app)
+
+Guia completo: [docs/INSTALL.md](docs/INSTALL.md) — instalador de 1 comando (Windows/macOS/Linux), PWA no PC e no celular via Tailscale (grátis). Com o app rodando, abra `/install`.
+
 ## Rodar (Windows, macOS, Linux)
 
 Pré-requisitos: Python 3.11+ com [uv](https://docs.astral.sh/uv/), Node 20.9+ com pnpm, FFmpeg no PATH.
