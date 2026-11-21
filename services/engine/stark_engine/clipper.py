@@ -13,15 +13,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-STOP = set(
-    """a o os as um uma uns umas de do da dos das em no na nos nas por para pra pro pros com sem que e é ou se
-    mas mais muito muita já não sim eu tu ele ela nós eles elas você vocês voce me te lhe meu minha seu sua
-    isso isto aquilo esse essa este esta aquele aquela aí lá aqui então tipo né tá ta foi ser ter tem tinha
-    vai vou era são está estava estão como quando onde porque qual quais quem ao aos à às pelo pela pelos
-    pelas num numa entre até sobre também só ainda bem coisa coisas gente fazer faz fez pode podia vamos
-    agora hoje depois antes sempre nunca tudo todo toda todos todas cara assim aqui ali vez vezes acho
-    the an and or of to in on for is are was were be it this that you we they have has had with what""".split()
-)
+STOP = {"a", "o", "os", "as", "um", "uma", "uns", "umas", "de", "do", "da", "dos", "das", "em", "no", "na", "nos", "nas", "por", "para", "pra", "pro", "pros", "com", "sem", "que", "e", "é", "ou", "se", "mas", "mais", "muito", "muita", "já", "não", "sim", "eu", "tu", "ele", "ela", "nós", "eles", "elas", "você", "vocês", "voce", "me", "te", "lhe", "meu", "minha", "seu", "sua", "isso", "isto", "aquilo", "esse", "essa", "este", "esta", "aquele", "aquela", "aí", "lá", "aqui", "então", "tipo", "né", "tá", "ta", "foi", "ser", "ter", "tem", "tinha", "vai", "vou", "era", "são", "está", "estava", "estão", "como", "quando", "onde", "porque", "qual", "quais", "quem", "ao", "aos", "à", "às", "pelo", "pela", "pelos", "pelas", "num", "numa", "entre", "até", "sobre", "também", "só", "ainda", "bem", "coisa", "coisas", "gente", "fazer", "faz", "fez", "pode", "podia", "vamos", "agora", "hoje", "depois", "antes", "sempre", "nunca", "tudo", "todo", "toda", "todos", "todas", "cara", "assim", "ali", "vez", "vezes", "acho", "the", "an", "and", "or", "of", "to", "in", "on", "for", "is", "are", "was", "were", "be", "it", "this", "that", "you", "we", "they", "have", "has", "had", "with", "what"}
 HOOK = ("segredo", "ninguém", "ninguem", "erro", "verdade", "nunca", "pare", "cuidado", "descobri", "maior",
         "pior", "melhor", "dinheiro", "imagina", "olha", "atenção", "atencao", "proibido", "mentira",
         "ninguém te conta", "por que", "porque você", "o que acontece", "como eu", "o motivo", "sabia",

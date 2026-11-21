@@ -1,0 +1,25 @@
+{
+  "name": "stark-clip-ai",
+  "private": true,
+  "description": "STARK CLIP AI — estúdio autônomo de cortes (motor Python + HUD Next.js)",
+  "scripts": {
+    "setup": "cd services/engine && uv sync && cd ../../apps/web && pnpm install",
+    "dev": "concurrently -k -n api,worker,web -c cyan,magenta,blue \"npm:dev:api\" \"npm:dev:worker\" \"npm:dev:web\"",
+    "dev:api": "cd services/engine && uv run uvicorn stark_engine.main:app --host 127.0.0.1 --port 8787 --reload --reload-dir stark_engine",
+    "dev:worker": "cd services/engine && uv run python -m stark_engine.worker",
+    "dev:web": "cd apps/web && pnpm dev -H 127.0.0.1",
+    "test": "cd services/engine && uv run pytest -q",
+    "check": "cd apps/web && pnpm exec tsc --noEmit && pnpm lint && pnpm build",
+    "test:ui": "node apps/web/scripts/ui-smoke.mjs",
+    "typecheck": "cd apps/web && pnpm exec tsc --noEmit",
+    "lint": "cd apps/web && pnpm lint && cd ../../services/engine && uv run ruff check stark_engine"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=20.9",
+    "pnpm": ">=9"
+  }
+}

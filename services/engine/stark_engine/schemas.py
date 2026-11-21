@@ -6,8 +6,15 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
-from .models import (AnalyticsSnapshotBase, ClipCandidateRead, EditedClipRead, JobRead, RightsGrantRead,
-                     ScheduledPostRead, SourceVideoRead)
+from .models import (
+    AnalyticsSnapshotBase,
+    ClipCandidateRead,
+    EditedClipRead,
+    JobRead,
+    RightsGrantRead,
+    ScheduledPostRead,
+    SourceVideoRead,
+)
 
 Layout = Literal["auto", "face", "center", "split", "fit"]
 Platform = Literal["tiktok", "instagram", "facebook", "youtube"]

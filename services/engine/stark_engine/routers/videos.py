@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import json
+import logging
 import shutil
+import subprocess
 from typing import Annotated
 
 from fastapi import APIRouter, File, Form, HTTPException, Query, Request, UploadFile, status
@@ -14,8 +16,20 @@ from ..ai.planner import apply_cuts, operator_request
 from ..clipper import ClipAnalyzer, pad_bounds
 from ..config import get_settings
 from ..jobqueue import enqueue
-from ..models import (ClipCandidate, ClipCandidateRead, EditedClip, EditedClipRead, Job, JobRead, RightsGrant,
-                      RightsGrantRead, ScheduledPost, SourceVideo, SourceVideoRead, Transcript)
+from ..models import (
+    ClipCandidate,
+    ClipCandidateRead,
+    EditedClip,
+    EditedClipRead,
+    Job,
+    JobRead,
+    RightsGrant,
+    RightsGrantRead,
+    ScheduledPost,
+    SourceVideo,
+    SourceVideoRead,
+    Transcript,
+)
 from ..pipeline import get_words, new_edit, rights_ok, video_dir
 from ..schemas import CandidatePatch, CutsImport, ProcessIn, ReferenceIn, RightsIn, VideoDetail, VideoPatch
 from ..security import CtxDep, data_file, rel_data, require_role, safe_path, ws_settings
@@ -23,6 +37,7 @@ from ..youtube import YouTubeError, oembed, parse_id
 
 router = APIRouter(prefix="/videos", tags=["videos"])
 cand_router = APIRouter(prefix="/candidates", tags=["cortes"])
+log = logging.getLogger(__name__)
 RIGHTS = ("own", "licensed", "creator_permission", "public_domain", "cc_by")
 
 
@@ -125,8 +140,8 @@ def upload(
         video.niche = niche
     try:
         media.grab_frame(dst, min(info["duration"] * 0.1, 30), vdir / "thumb.jpg", width=480)
-    except Exception:  # noqa: BLE001 - miniatura é opcional
-        pass
+    except (OSError, subprocess.SubprocessError) as e:  # miniatura é opcional
+        log.warning("miniatura falhou para vídeo %s: %s", video.id, e)
     ctx.session.add(RightsGrant(workspace_id=ctx.ws.id, video_id=video.id, rights_type=rights_type, holder=holder,
                                 evidence=evidence, allows_edit=allows_edit, allows_commercial=allows_commercial,
                                 declared_by=ctx.user.id))

@@ -9,9 +9,9 @@ os.environ.update(STARK_DATA_DIR=str(_TMP), STARK_API_TOKEN="test-token", STARK_
                   STARK_LANGUAGE="pt", STARK_HWACCEL="none")
 os.environ.pop("STARK_DATABASE_URL", None)
 
-from fastapi.testclient import TestClient  # noqa: E402
+from fastapi.testclient import TestClient
 
-from stark_engine.main import app  # noqa: E402
+from stark_engine.main import app
 
 AUTH = {"Authorization": "Bearer test-token"}
 

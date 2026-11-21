@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+from itertools import pairwise
 
 
 def keep_segments(words: list, start: float, end: float, remove_pauses: bool,
@@ -11,7 +12,7 @@ def keep_segments(words: list, start: float, end: float, remove_pauses: bool,
         return [(start, end)]
     ws = [w for w in words if w[1] > start and w[0] < end]
     segs, cur = [], start
-    for a, b in zip(ws, ws[1:], strict=False):
+    for a, b in pairwise(ws):
         if b[0] - a[1] > min_gap:
             segs.append((cur, a[1] + pad))
             cur = b[0] - pad
@@ -55,7 +56,7 @@ def build_chunks(words: list, per_line: int = 3, max_chars: int = 22, max_gap: f
 
 
 def _srt_time(t: float) -> str:
-    ms = int(round(max(0, t) * 1000))
+    ms = round(max(0, t) * 1000)
     h, ms = divmod(ms, 3_600_000)
     m, ms = divmod(ms, 60_000)
     s, ms = divmod(ms, 1000)
@@ -63,7 +64,7 @@ def _srt_time(t: float) -> str:
 
 
 def _ass_time(t: float) -> str:
-    cs = int(round(max(0, t) * 100))
+    cs = round(max(0, t) * 100)
     h, cs = divmod(cs, 360_000)
     m, cs = divmod(cs, 6000)
     s, cs = divmod(cs, 100)

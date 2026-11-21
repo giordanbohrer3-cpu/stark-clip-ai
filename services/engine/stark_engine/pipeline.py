@@ -14,8 +14,17 @@ from .clipper import ClipAnalyzer, pad_bounds
 from .config import get_settings
 from .copywriter import generate_copy
 from .jobqueue import JobCtl, enqueue
-from .models import (AuditLog, ClipCandidate, EditedClip, Job, RightsGrant, SourceVideo, Transcript, Workspace,
-                     utcnow)
+from .models import (
+    AuditLog,
+    ClipCandidate,
+    EditedClip,
+    Job,
+    RightsGrant,
+    SourceVideo,
+    Transcript,
+    Workspace,
+    utcnow,
+)
 from .render import RenderSpec, render_clip
 from .security import data_file, deep_merge, rel_data, ws_settings
 

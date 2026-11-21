@@ -17,7 +17,7 @@ def utcnow() -> datetime:
 
 
 def _json(default: Any = None) -> Any:
-    factory = (lambda: {}) if default is None else (lambda: list(default))
+    factory = (dict) if default is None else (lambda: list(default))
     return Field(default_factory=factory, sa_column=Column(JSON, nullable=False))
 
 

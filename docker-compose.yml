@@ -1,0 +1,51 @@
+# STARK CLIP AI — dev/produção local. Portas só em 127.0.0.1 (não expõe na rede).
+# Uso: cp .env.example .env && docker compose up --build
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: stark
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-stark}
+      POSTGRES_DB: stark
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stark"]
+      interval: 5s
+      retries: 10
+
+  engine:
+    build: ./services/engine
+    env_file: .env
+    environment: &engine_env
+      STARK_DATABASE_URL: postgresql+psycopg://stark:${POSTGRES_PASSWORD:-stark}@db:5432/stark
+      STARK_DATA_DIR: /data
+    volumes: &engine_vol
+      - media:/data
+      - hf-cache:/home/stark/.cache/huggingface
+    depends_on:
+      db: { condition: service_healthy }
+    ports: ["127.0.0.1:8787:8787"]
+
+  worker:
+    build: ./services/engine
+    command: ["python", "-m", "stark_engine.worker"]
+    env_file: .env
+    environment: *engine_env
+    volumes: *engine_vol
+    depends_on:
+      db: { condition: service_healthy }
+    # GPU NVIDIA (opcional): descomente + STARK_HWACCEL=nvenc / STARK_WHISPER_DEVICE=cuda
+    # deploy: { resources: { reservations: { devices: [{ driver: nvidia, count: 1, capabilities: [gpu] }] } } }
+
+  web:
+    build: ./apps/web
+    environment:
+      STARK_ENGINE_URL: http://engine:8787
+      STARK_API_TOKEN: ${STARK_API_TOKEN:?defina STARK_API_TOKEN no .env}
+    depends_on: [engine]
+    ports: ["127.0.0.1:3000:3000"]
+
+volumes:
+  pgdata:
+  media:
+  hf-cache:

@@ -14,8 +14,21 @@ from ..ai.providers import AIError, call_json, month_spend, provider_status, rou
 from ..config import get_settings
 from ..copywriter import to_tag
 from ..jobqueue import request_cancel, retry
-from ..models import (AIUsage, AnalyticsSnapshot, AuditLog, ClipCandidate, EditedClip, Job, JobRead, ScheduledPost,
-                      SourceVideo, Transcript, Trend, TrendRead, utcnow)
+from ..models import (
+    AIUsage,
+    AnalyticsSnapshot,
+    AuditLog,
+    ClipCandidate,
+    EditedClip,
+    Job,
+    JobRead,
+    ScheduledPost,
+    SourceVideo,
+    Transcript,
+    Trend,
+    TrendRead,
+    utcnow,
+)
 from ..schemas import SettingsPatch, Stats, TrendIn
 from ..security import DEFAULT_SETTINGS, CtxDep, deep_merge, rel_data, require_role, safe_path
 from ..youtube import YouTubeError, search, trending

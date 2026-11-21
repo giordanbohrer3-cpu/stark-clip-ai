@@ -7,12 +7,12 @@ import threading
 import time
 
 from . import jobqueue
+from .config import get_settings
 from .db import init_db, session_scope
 from .media import Canceled, MediaError
 from .models import EditedClip, Job, SourceVideo
 from .pipeline import PermissionDenied, run_analyze, run_render
 from .publishing import run_publish, scheduler_tick
-from .config import get_settings
 
 log = logging.getLogger("stark.worker")
 HANDLERS = {"analyze": run_analyze, "render": run_render, "publish": run_publish}
@@ -44,7 +44,7 @@ def run_job(job: Job) -> None:
         jobqueue.fail(job.id, f"{type(e).__name__}: {e}", retryable=False)
         _mark_failed(job, str(e))
         log.warning("job %s falhou: %s", job.id, e)
-    except Exception as e:  # noqa: BLE001 - fronteira do worker: registra e agenda retentativa
+    except Exception as e:
         log.exception("job %s erro inesperado", job.id)
         jobqueue.fail(job.id, f"{type(e).__name__}: {e}", retryable=True)
         with session_scope() as s:
@@ -67,7 +67,7 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
     init_db()
 
-    def _sig(*_):  # noqa: ANN002
+    def _sig(*_):
         global _stop
         _stop = True
 

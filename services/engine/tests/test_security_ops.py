@@ -1,5 +1,6 @@
 """Segurança, fila, orçamento de IA e publicação (sem rede externa)."""
 from datetime import timedelta
+from itertools import pairwise
 
 import pytest
 from fastapi import HTTPException
@@ -118,7 +119,7 @@ def test_slots_respect_cap_gap_and_quiet_hours(client):
         s.commit()
         slots = next_slots(s, ws, acc, 10)
         assert len(slots) == 10
-        for a, b in zip(slots, slots[1:], strict=False):
+        for a, b in pairwise(slots):
             assert (b - a) >= timedelta(minutes=90)
         per_day: dict = {}
         for t in slots:

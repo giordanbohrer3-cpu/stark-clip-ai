@@ -19,7 +19,7 @@ def get_engine() -> Engine:
         eng = create_engine(url, connect_args={"check_same_thread": False, "timeout": 30})
 
         @event.listens_for(eng, "connect")
-        def _pragmas(dbapi_conn, _):  # noqa: ANN001
+        def _pragmas(dbapi_conn, _):
             cur = dbapi_conn.cursor()
             cur.execute("PRAGMA journal_mode=WAL")
             cur.execute("PRAGMA foreign_keys=ON")

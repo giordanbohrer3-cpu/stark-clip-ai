@@ -63,8 +63,8 @@ def route(ws: Workspace, task: str) -> list[str]:
 
 
 def _parse_json(text: str) -> dict:
-    text = re.sub(r"^```(?:json)?|```$", "", text.strip(), flags=re.M).strip()
-    m = re.search(r"\{.*\}", text, re.S)
+    text = re.sub(r"^```(?:json)?|```$", "", text.strip(), flags=re.MULTILINE).strip()
+    m = re.search(r"\{.*\}", text, re.DOTALL)
     if not m:
         raise AIError("resposta sem JSON")
     return json.loads(m.group(0))

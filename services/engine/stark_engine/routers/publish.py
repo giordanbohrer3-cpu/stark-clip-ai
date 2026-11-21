@@ -4,8 +4,15 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException, status
 from sqlmodel import select
 
-from ..models import (AnalyticsSnapshot, EditedClip, ScheduledPost, SocialAccount, SocialAccountRead, ClipCandidate,
-                      utcnow)
+from ..models import (
+    AnalyticsSnapshot,
+    ClipCandidate,
+    EditedClip,
+    ScheduledPost,
+    SocialAccount,
+    SocialAccountRead,
+    utcnow,
+)
 from ..publishing import UPLOAD_URLS, PostError, create_post, next_slots
 from ..schemas import AccountIn, AccountPatch, BulkScheduleIn, PostIn, PostPatch, PostRow, SnapshotIn
 from ..security import CtxDep, require_role

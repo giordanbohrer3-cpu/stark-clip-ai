@@ -96,7 +96,7 @@ def detect_scenes(src: Path, threshold: float = 0.35, timeout: int = 1800) -> li
     proc = subprocess.run(
         ["ffmpeg", "-nostdin", "-v", "info", "-i", str(src), "-an", "-vf",
          f"scale=320:-2,select='gt(scene,{threshold})',showinfo", "-f", "null", "-"],
-        capture_output=True, text=True, timeout=timeout,
+        capture_output=True, text=True, timeout=timeout, check=False,  # parse do stderr
     )
     return [float(m) for m in re.findall(r"pts_time:([0-9.]+)", proc.stderr)]
 

@@ -40,7 +40,7 @@ def test_duration_bounds_adaptive():
 
 def test_select_three_distinct_non_overlapping():
     an = ClipAnalyzer(_video(), 120, np.zeros(240), [])
-    chosen, note = an.select(3, 30)
+    chosen, _note = an.select(3, 30)
     assert 1 <= len(chosen) <= 3
     for a in chosen:
         assert an.lo <= a.duration <= an.hi

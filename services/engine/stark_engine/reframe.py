@@ -34,7 +34,7 @@ def sample_faces(path: Path, start: float, end: float, fps: float = 3.0, det_w: 
     if not cap.isOpened():
         return []
     src_fps = cap.get(cv2.CAP_PROP_FPS) or 30
-    step = max(1, int(round(src_fps / fps)))
+    step = max(1, round(src_fps / fps))
     cap.set(cv2.CAP_PROP_POS_MSEC, start * 1000)
     front = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
     prof = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_profileface.xml")
