@@ -2,8 +2,8 @@
 
 /* STARK HUD — tokens */
 :root {
-  --bg: #04060c;
-  --bg-2: #070b16;
+  --bg: #0b0614;
+  --bg-2: #0d0820;
   --surface: rgb(12 18 34 / 0.72);
   --surface-2: rgb(18 26 48 / 0.8);
   --line: rgb(56 189 248 / 0.16);
@@ -12,7 +12,7 @@
   --muted: #8ea4c8;
   --cyan: #22d3ee;
   --blue: #3b82f6;
-  --violet: #8b5cf6;
+  --violet: #e83cc4;
   --ok: #34d399;
   --warn: #fbbf24;
   --bad: #f87171;
@@ -48,7 +48,7 @@ body {
 body {
   min-height: 100dvh;
   background:
-    radial-gradient(1100px 600px at 85% -10%, rgb(139 92 246 / 0.16), transparent 60%),
+    radial-gradient(1100px 600px at 85% -10%, rgb(232 60 196 / 0.18), transparent 60%),
     radial-gradient(900px 500px at -10% 10%, rgb(34 211 238 / 0.12), transparent 55%),
     linear-gradient(var(--bg), var(--bg-2));
   background-attachment: fixed;

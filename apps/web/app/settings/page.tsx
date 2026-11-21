@@ -150,6 +150,18 @@ export default function SettingsPage() {
           </div>
         </Panel>
 
+        <Panel eyebrow="máquina de clipes" title="Radar ao vivo" id="radar">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Jogo/categoria (Twitch)" hint="nome exato, ex.: Grand Theft Auto VI"><Input value={s.radar.game} onChange={(e) => set("radar", { game: e.target.value })} /></Field>
+            <Field label="Busca de lives no YouTube"><Input value={s.radar.youtube_query} onChange={(e) => set("radar", { youtube_query: e.target.value })} /></Field>
+            <Field label="Idiomas (vazio = todos)" hint="ex.: pt, en"><Input value={s.radar.languages.join(", ")} onChange={(e) => set("radar", { languages: e.target.value.split(/[\s,]+/).filter(Boolean) })} /></Field>
+            <Field label="Máx. de lives no radar"><Input type="number" min={10} max={100} value={s.radar.max_channels} onChange={(e) => set("radar", { max_channels: +e.target.value })} /></Field>
+            <Field label={`Sensibilidade do pico ${s.radar.sensitivity}`} hint="menor = mais momentos"><input type="range" min={2} max={5} step={0.5} value={s.radar.sensitivity} className="w-full" onChange={(e) => set("radar", { sensitivity: +e.target.value })} /></Field>
+            <Field label="Mínimo de msgs por 10 s"><Input type="number" min={5} max={200} value={s.radar.min_rate} onChange={(e) => set("radar", { min_rate: +e.target.value })} /></Field>
+          </div>
+          <p className="mt-2 text-xs text-muted">Mudanças valem após reiniciar (menu → Clipzou → Atualizar e reiniciar).</p>
+        </Panel>
+
         <Panel eyebrow="cadência" title="Ritmo de publicação" id="cad">
           <div className="grid gap-3 sm:grid-cols-4">
             <Field label="Intervalo mín. (min)"><Input type="number" min={15} value={s.cadence.min_gap_minutes} onChange={(e) => set("cadence", { min_gap_minutes: +e.target.value })} /></Field>

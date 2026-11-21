@@ -1,6 +1,6 @@
-# STARK CLIP AI — instruções para o Claude Code
+# Clipzou — instruções para o Claude Code
 
-App pessoal de cortes verticais. Motor Python (`services/engine`, FastAPI + worker, FFmpeg, faster-whisper) + painel Next.js 16 (`apps/web`, PWA). Roda 100% local e grátis. Dono: uso pessoal, fala PT-BR, prefere respostas curtas.
+Clipzou (ex-STARK CLIP AI): máquina de clipes pessoal. Radar ao vivo (Twitch/YouTube, picos de chat) + cortes prontos. Motor Python (`services/engine`, FastAPI + worker, FFmpeg, faster-whisper) + painel Next.js 16 (`apps/web`, PWA). Roda 100% local e grátis. Dono: uso pessoal, fala PT-BR, prefere respostas curtas.
 
 ## Regra principal: faça, não pergunte
 
@@ -24,6 +24,13 @@ App pessoal de cortes verticais. Motor Python (`services/engine`, FastAPI + work
 | Testes | `cd services/engine && uv run pytest -q` · `cd apps/web && pnpm exec tsc --noEmit && pnpm lint` |
 
 Diagnóstico rápido: `git status -sb`, `command -v pnpm uv node ffmpeg`, curl na saúde.
+
+## Chaves do radar (grátis)
+
+Sem chaves o radar fica vazio. Pedido "configura as chaves/radar": abra `services/engine/.env` para o usuário (`xdg-open services/engine/.env`),
+explique em 3 linhas onde criar (Twitch: dev.twitch.tv → Aplicativos → Registrar, redirect `http://localhost:3000/api/engine/live/twitch/callback`,
+Confidencial; YouTube: Google Cloud → YouTube Data API v3 → chave). NÃO peça as chaves no chat. Quando ele salvar: `bash scripts/update.sh`
+em segundo plano e confira `curl -s http://127.0.0.1:3000/api/engine/live/status`. Depois: Radar → Conectar Twitch.
 
 ## Limites
 

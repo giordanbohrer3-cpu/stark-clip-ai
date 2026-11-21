@@ -1,4 +1,14 @@
-# Instalação (PC + celular) — 100% grátis
+# Instalação do Clipzou (PC + celular) — 100% grátis
+
+## 0. Chaves do radar (grátis, 5 min)
+
+O instalador cria `services/engine/.env`. Preencha e reinicie (menu → Clipzou → Atualizar e reiniciar):
+
+- **Twitch:** dev.twitch.tv → Console → Aplicativos → Registrar. Redirecionamento: `http://localhost:3000/api/engine/live/twitch/callback`,
+  tipo **Confidencial** → `STARK_TWITCH_CLIENT_ID` e `STARK_TWITCH_CLIENT_SECRET`.
+- **YouTube:** console.cloud.google.com → ativar **YouTube Data API v3** → Credenciais → Chave de API → `STARK_YOUTUBE_API_KEY`.
+
+Depois, no Radar: **Conectar Twitch** (para cortar canais que te deram editor).
 
 O STARK roda no **seu PC** (motor de vídeo). O app instalado (PWA) é a tela de controle no PC e no celular.
 

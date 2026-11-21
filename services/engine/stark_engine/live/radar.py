@@ -48,7 +48,7 @@ def _write_state(st: dict) -> None:
 
 def _parse_dt(v: str | None) -> datetime | None:
     try:
-        return datetime.fromisoformat(v.replace("Z", "+00:00")) if v else None
+        return datetime.fromisoformat(v) if v else None
     except ValueError:
         return None
 
@@ -161,7 +161,8 @@ async def main() -> None:
                 st["error"] = str(e)[:200]
         for sp in det.tick(now):
             await asyncio.to_thread(save_spike, sp)
-        st.update(chat="conectado" if chat.connected else (chat.error or "conectando"),
+        st.update(chat="conectado" if chat.connected else ("sem conexão" if chat.error else "conectando"),
+                  chat_error=chat.error,
                   channels=len(chat.joined), running=True)
         _write_state(st)
         await asyncio.sleep(2)

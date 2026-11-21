@@ -74,7 +74,7 @@ export function Button({ variant = "ghost", size = "md", loading, icon, classNam
       className={clsx(
         "inline-flex items-center justify-center gap-2 rounded-[10px] font-medium transition-[background,border,box-shadow,color] disabled:cursor-not-allowed disabled:opacity-45",
         size === "sm" ? "h-8 px-3 text-xs" : "h-10 px-4 text-sm",
-        variant === "primary" && "bg-gradient-to-r from-cyan to-blue text-[#021018] shadow-[0_0_24px_-6px_var(--cyan)] hover:brightness-110",
+        variant === "primary" && "bg-gradient-to-r from-violet to-cyan text-[#12041a] shadow-[0_0_24px_-6px_var(--violet)] hover:brightness-110",
         variant === "ghost" && "border border-line bg-surface-2 text-ink hover:border-cyan/50 hover:text-cyan",
         variant === "subtle" && "text-muted hover:text-cyan",
         variant === "danger" && "border border-bad/40 bg-bad/10 text-bad hover:bg-bad/20",

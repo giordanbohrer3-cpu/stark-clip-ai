@@ -1,4 +1,6 @@
-# STARK CLIP AI
+# Clipzou
+
+> Máquina de clipes: radar das lives e vídeos bombando (Twitch, YouTube) + cortes prontos para TikTok, Reels e Shorts.
 
 Central de comando para transformar **vídeos autorizados** em cortes verticais prontos: transcrição local, 3 cortes por vídeo com score explicável, legendas animadas, reframe 9:16, render, agenda e publicação assistida.
 

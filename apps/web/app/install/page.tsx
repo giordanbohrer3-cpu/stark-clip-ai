@@ -18,7 +18,7 @@ const STEPS: Record<Tab, string[]> = {
   android: [
     "Abra o endereço HTTPS do Tailscale no Chrome do celular (ex.: https://meu-pc.tailnet.ts.net/install).",
     "Toque em “Instalar app” nesta página (ou menu ⋮ → Instalar aplicativo).",
-    "O ícone STARK aparece na tela inicial e abre em tela cheia.",
+    "O ícone Clipzou aparece na tela inicial e abre em tela cheia.",
   ],
   ios: [
     "Abra o endereço HTTPS do Tailscale no Safari (precisa ser o Safari).",
@@ -28,7 +28,7 @@ const STEPS: Record<Tab, string[]> = {
   desktop: [
     "No PC, com o app rodando (pnpm start), abra http://127.0.0.1:3000/install no Chrome ou Edge.",
     "Clique em “Instalar app” aqui ou no ícone de instalar na barra de endereço.",
-    "O STARK abre em janela própria e ganha atalho no menu Iniciar/Dock.",
+    "O Clipzou abre em janela própria e ganha atalho no menu Iniciar/Dock.",
   ],
 };
 
@@ -84,14 +84,14 @@ export default function InstallPage() {
         <img src="/icons/icon-192.png" alt="" className="size-16 rounded-2xl shadow-[0_0_30px_-8px_var(--cyan)]" />
         <div>
           <p className="hud-label">PWA · celular e PC · grátis</p>
-          <h1 className="glow-text text-2xl font-semibold">Instalar STARK CLIP AI</h1>
+          <h1 className="glow-text text-2xl font-semibold">Instalar Clipzou</h1>
         </div>
         {done && <Badge className="border-ok/40 text-ok">instalado</Badge>}
       </header>
 
       <Panel eyebrow="este dispositivo" title="Instalação" id="now">
         {done ? (
-          <Note tone="ok">Pronto: o STARK está instalado neste dispositivo. Abra pelo ícone da tela inicial/menu.</Note>
+          <Note tone="ok">Pronto: o Clipzou está instalado neste dispositivo. Abra pelo ícone da tela inicial/menu.</Note>
         ) : evt ? (
           <Button variant="primary" className="h-12 w-full text-base sm:w-auto" onClick={() => runInstall(evt)} icon={<Download className="size-5" />}>
             Instalar app agora
@@ -104,7 +104,7 @@ export default function InstallPage() {
           <Note tone="info"><Share className="mr-1 inline size-4" aria-hidden />No Safari: Compartilhar → “Adicionar à Tela de Início”.</Note>
         ) : (
           <Note tone="info">
-            Use Chrome ou Edge: clique no ícone de instalar na barra de endereço ou menu ⋮ → “Instalar STARK CLIP AI”.
+            Use Chrome ou Edge: clique no ícone de instalar na barra de endereço ou menu ⋮ → “Instalar Clipzou”.
             Se não aparecer, recarregue a página uma vez.
           </Note>
         )}
@@ -148,7 +148,7 @@ export default function InstallPage() {
           <ol className="space-y-2 text-sm text-muted">
             <li>1. Instale o Tailscale no PC e no celular e entre na mesma conta (ex.: GitHub). Linux: <code className="text-cyan">curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up</code></li>
             <li>2. No painel do Tailscale → DNS: ative MagicDNS e HTTPS Certificates.</li>
-            <li>3. No PC, com o STARK rodando (Windows/Mac: sem sudo). Se aparecer um link para ativar HTTPS, abra e confirme:</li>
+            <li>3. No PC, com o Clipzou rodando (Windows/Mac: sem sudo). Se aparecer um link para ativar HTTPS, abra e confirme:</li>
           </ol>
           <div className="mt-2 flex items-center gap-2 rounded-lg border border-line bg-black/40 px-3 py-2">
             <code className="flex-1 font-mono text-sm text-cyan">{TS_CMD}</code>

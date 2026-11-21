@@ -48,7 +48,20 @@ if ! have node || [ "$(node -p 'process.versions.node.split(".")[0]')" -lt 20 ];
   pnpm env use --global lts
 fi
 
-say "4/5 Instalando e compilando o STARK"
+ENV_FILE="$ROOT/services/engine/.env"
+if [ ! -f "$ENV_FILE" ]; then
+  cat > "$ENV_FILE" <<'ENVEOF'
+# Chaves GRÁTIS do radar Clipzou. Preencha, salve e reinicie (menu → Clipzou → Atualizar e reiniciar).
+# Twitch: dev.twitch.tv → Aplicativos → Registrar (redirecionamento http://localhost:3000/api/engine/live/twitch/callback, Confidencial)
+STARK_TWITCH_CLIENT_ID=
+STARK_TWITCH_CLIENT_SECRET=
+# YouTube: console.cloud.google.com → ativar "YouTube Data API v3" → Credenciais → Chave de API
+STARK_YOUTUBE_API_KEY=
+ENVEOF
+  chmod 600 "$ENV_FILE"
+fi
+
+say "4/5 Instalando e compilando o Clipzou"
 pnpm install
 pnpm run setup
 pnpm run build
@@ -59,10 +72,11 @@ if [ "$(uname)" = "Linux" ]; then
   cat > "$HOME/.local/share/applications/stark-clip-ai.desktop" <<EOF
 [Desktop Entry]
 Type=Application
-Name=STARK CLIP AI
-Comment=Liga o motor de cortes e abre o painel
+Name=Clipzou
+Comment=Máquina de clipes: radar ao vivo e cortes prontos
 Exec=bash "$ROOT/scripts/start.sh"
 Icon=$ROOT/apps/web/public/icons/icon-512.png
+StartupWMClass=Clipzou
 Terminal=true
 Categories=AudioVideo;Video;
 Actions=update;stop;
@@ -72,11 +86,11 @@ Name=Atualizar e reiniciar
 Exec=bash "$ROOT/scripts/update.sh"
 
 [Desktop Action stop]
-Name=Parar STARK
+Name=Parar Clipzou
 Exec=bash "$ROOT/scripts/stop.sh"
 EOF
 fi
 
-printf '\n\033[1;32m✔ Instalado.\033[0m Próximas vezes: abra "STARK CLIP AI" no menu ou rode: bash scripts/start.sh\n'
+printf '\n\033[1;32m✔ Instalado.\033[0m Próximas vezes: abra "Clipzou" no menu ou rode: bash scripts/start.sh\n'
 [ "${STARK_NO_START:-}" = "1" ] && exit 0
 exec bash "$ROOT/scripts/start.sh"

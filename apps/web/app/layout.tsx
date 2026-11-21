@@ -8,14 +8,14 @@ import { BIP_SCRIPT } from "@/lib/pwa-script";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "STARK CLIP AI",
-  description: "Central de comando: cortes com IA, legendas, render 9:16 e publicação assistida.",
-  applicationName: "STARK CLIP AI",
-  appleWebApp: { capable: true, title: "STARK", statusBarStyle: "black-translucent" },
+  title: "Clipzou",
+  description: "Máquina de clipes: radar das lives e vídeos bombando e cortes prontos para postar.",
+  applicationName: "Clipzou",
+  appleWebApp: { capable: true, title: "Clipzou", statusBarStyle: "black-translucent" },
   formatDetection: { telephone: false },
 };
 
-export const viewport: Viewport = { themeColor: "#04060c", width: "device-width", initialScale: 1, viewportFit: "cover" };
+export const viewport: Viewport = { themeColor: "#0b0614", width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (

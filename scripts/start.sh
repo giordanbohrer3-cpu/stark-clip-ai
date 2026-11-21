@@ -8,7 +8,7 @@ URL="http://127.0.0.1:3000"
 open_url() { (xdg-open "$1" || open "$1") >/dev/null 2>&1 & }
 
 if curl -fs "$URL/api/engine/health" >/dev/null 2>&1; then
-  echo "STARK já está rodando: $URL  (para atualizar: bash scripts/update.sh)"
+  echo "Clipzou já está rodando: $URL  (para atualizar: bash scripts/update.sh)"
   open_url "$URL"
   exit 0
 fi
@@ -30,7 +30,7 @@ fi
 ( for _ in $(seq 1 90); do
     sleep 2
     if curl -fs "$URL/api/engine/health" >/dev/null 2>&1; then
-      echo; echo "✔ STARK pronto: $URL  (celular: pnpm run phone)"
+      echo; echo "✔ Clipzou pronto: $URL  (celular: pnpm run phone)"
       [ "${STARK_NO_BROWSER:-}" = "1" ] || open_url "$URL"
       break
     fi

@@ -1,6 +1,6 @@
 "use client";
 import clsx from "clsx";
-import { Clapperboard, Film, LayoutDashboard, Pause, Play, Radar, Send, Settings2 } from "lucide-react";
+import { Film, Flame, LayoutDashboard, Pause, Play, Radar, Send, Settings2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -10,16 +10,17 @@ import { InstallChip } from "./pwa";
 import type { Health, SettingsResp } from "@/lib/types";
 
 const NAV = [
-  { href: "/", label: "Comando", icon: LayoutDashboard },
+  { href: "/", label: "Radar", icon: Radar },
+  { href: "/feed", label: "Feed", icon: Flame },
   { href: "/library", label: "Vídeos", icon: Film },
-  { href: "/studio", label: "Estúdio", icon: Clapperboard },
   { href: "/publish", label: "Publicar", icon: Send },
-  { href: "/trends", label: "Radar", icon: Radar },
+  { href: "/painel", label: "Painel", icon: LayoutDashboard },
   { href: "/settings", label: "Config", icon: Settings2 },
 ];
 
 function isActive(path: string, href: string) {
-  return href === "/" ? path === "/" : path.startsWith(href) || (href === "/studio" && path.startsWith("/videos"));
+  return href === "/" ? path === "/" || path.startsWith("/trends") : path.startsWith(href)
+    || (href === "/feed" && path.startsWith("/studio")) || (href === "/library" && path.startsWith("/videos"));
 }
 
 function NavItems({ mobile, path = "" }: { mobile?: boolean; path?: string }) {
@@ -71,10 +72,11 @@ export function Shell({ children }: { children: ReactNode }) {
       </a>
       <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-line bg-black/30 px-4 py-6 backdrop-blur lg:flex">
         <Link href="/" className="mb-8 flex items-center gap-3 px-2">
-          <span className="grid size-9 place-items-center rounded-xl border border-cyan/40 bg-cyan/10 font-mono text-sm font-bold text-cyan shadow-[0_0_20px_-4px_var(--cyan)]">S</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/clipzou-96.png" alt="" className="size-11 rounded-full shadow-[0_0_22px_-4px_var(--violet)]" />
           <span>
-            <span className="block text-sm font-semibold tracking-wide">STARK CLIP AI</span>
-            <span className="hud-label">estúdio autônomo</span>
+            <span className="block text-base font-bold tracking-wide">Clipzou</span>
+            <span className="hud-label">máquina de clipes</span>
           </span>
         </Link>
         <nav aria-label="Principal" className="flex flex-col gap-1">
@@ -92,7 +94,11 @@ export function Shell({ children }: { children: ReactNode }) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-line bg-black/40 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur sm:px-6">
-          <span className="text-sm font-semibold lg:hidden">STARK CLIP AI</span>
+          <span className="flex items-center gap-2 text-sm font-bold lg:hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/clipzou-96.png" alt="" className="size-7 rounded-full" />
+            Clipzou
+          </span>
           <div className="hidden items-center gap-2 text-xs text-muted lg:flex">
             <span className="hud-label">modo</span>
             <span className="font-mono text-ink">{cfg.data?.settings.autonomy ?? "—"}</span>

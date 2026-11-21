@@ -3,16 +3,16 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "STARK CLIP AI",
-    short_name: "STARK",
-    description: "Cortes verticais com IA local: transcrição, 3 cortes, legendas, render 9:16 e agenda.",
+    name: "Clipzou",
+    short_name: "Clipzou",
+    description: "Máquina de clipes: radar das lives e vídeos bombando e cortes prontos para TikTok, Reels e Shorts.",
     lang: "pt-BR",
     start_url: "/",
     scope: "/",
     display: "standalone",
     orientation: "any",
-    background_color: "#04060c",
-    theme_color: "#04060c",
+    background_color: "#0b0614",
+    theme_color: "#0b0614",
     categories: ["productivity", "photo", "video"],
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
@@ -20,8 +20,8 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: "/icons/maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
     shortcuts: [
-      { name: "Enviar vídeo", url: "/library", icons: [{ src: "/icons/icon-192.png", sizes: "192x192" }] },
-      { name: "Estúdio", url: "/studio", icons: [{ src: "/icons/icon-192.png", sizes: "192x192" }] },
+      { name: "Feed de cortes", url: "/feed", icons: [{ src: "/icons/icon-192.png", sizes: "192x192" }] },
+      { name: "Radar ao vivo", url: "/", icons: [{ src: "/icons/icon-192.png", sizes: "192x192" }] },
       { name: "Publicar", url: "/publish", icons: [{ src: "/icons/icon-192.png", sizes: "192x192" }] },
     ],
   };

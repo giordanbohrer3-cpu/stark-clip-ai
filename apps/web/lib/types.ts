@@ -78,6 +78,8 @@ export type Settings = {
   captions: CaptionStyle;
   branding: { logo_path: string | null; logo_opacity: number; logo_scale: number };
   cadence: { min_gap_minutes: number; quiet_start: number; quiet_end: number; tz_offset_h: number };
+  radar: { enabled: boolean; game: string; languages: string[]; max_channels: number; sensitivity: number;
+    min_rate: number; youtube_query: string };
 };
 export type SettingsResp = { settings: Settings; providers: ProviderStatus[]; env: { youtube_api: boolean; whisper_model: string; free_only: boolean } };
 export type Trend = {
@@ -88,3 +90,28 @@ export type YtResult = {
   youtube_id: string; title: string; channel: string; published_at: string; thumbnail_url: string;
   duration_s: number; views: number; likes: number; comments: number; license: string; url: string;
 };
+
+/* Máquina de clipes (radar) */
+export type LiveStatus = {
+  radar_running: boolean; chat: string; chat_channels: number; twitch_api: string; youtube_api: string;
+  twitch_configured: boolean; youtube_configured: boolean; twitch_connected: boolean; twitch_login: string | null;
+  lives: number; viewers: number; moments_today: number; clips_ready: number; game: string | null;
+};
+export type LiveRow = {
+  id: number; platform: "twitch" | "youtube"; channel: string; display_name: string; title: string; viewers: number;
+  game: string; language: string; thumbnail_url: string; url: string; live: boolean; seen_at: string; authorized: boolean;
+};
+export type MomentRow = {
+  id: number; platform: string; channel: string; at: string; rate: number; baseline: number; score: number; viewers: number;
+  tokens: string[]; samples: string[]; status: string; clip_id: string | null; video_id: number | null; error: string | null;
+  authorized: boolean; watch_url: string;
+};
+export type ChannelRow = {
+  id: number; platform: string; channel: string; display_name: string; rights_type: string; evidence: string;
+  allows_commercial: boolean; auto_clip: boolean; active: boolean; created_at: string;
+};
+export type HotVideo = {
+  id: number; title: string; url: string; channel: string; views: number; views_per_hour: number; thumbnail_url: string;
+  duration_s: number;
+};
+export type FeedItem = { clip: Clip; video_id: number; title: string; origin: string; channel: string | null; source_url: string | null };
