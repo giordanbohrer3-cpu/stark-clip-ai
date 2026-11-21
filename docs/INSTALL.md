@@ -28,9 +28,9 @@ O repositório é privado: o `git clone` pede login do GitHub uma vez.
 
 ## 3. Celular (Tailscale, grátis e privado)
 
-1. Instale o Tailscale no PC e no celular, mesma conta (plano pessoal grátis).
+1. Instale o Tailscale no PC e no celular, mesma conta (plano pessoal grátis). Linux: `curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up` (abre o login; use a mesma conta do celular).
 2. Painel do Tailscale → **DNS** → ative **MagicDNS** e **HTTPS Certificates**.
-3. No PC, com o app rodando: `pnpm run phone` (= `tailscale serve --bg 3000`) → mostra `https://seu-pc.<tailnet>.ts.net`.
+3. No PC, com o app rodando: `pnpm run phone` (= `sudo tailscale serve --bg 3000` no Linux; se aparecer link para ativar HTTPS, abra e confirme) → mostra `https://seu-pc.<tailnet>.ts.net`.
 4. No celular abra `https://seu-pc.<tailnet>.ts.net/install`:
    - Android (Chrome): **Instalar app**
    - iPhone (Safari): Compartilhar → **Adicionar à Tela de Início**

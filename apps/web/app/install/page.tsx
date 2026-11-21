@@ -32,7 +32,7 @@ const STEPS: Record<Tab, string[]> = {
   ],
 };
 
-const TS_CMD = "tailscale serve --bg 3000";
+const TS_CMD = "sudo tailscale serve --bg 3000";
 const HTTPS_URL = /^https:\/\/[a-z0-9.-]+(:\d+)?(\/.*)?$/i;
 
 function qrSvg(text: string): string {
@@ -146,9 +146,9 @@ export default function InstallPage() {
 
         <Panel eyebrow="acesso grátis e privado" title="Tailscale no PC e no celular" id="ts">
           <ol className="space-y-2 text-sm text-muted">
-            <li>1. Instale o Tailscale no PC e no celular e entre na mesma conta (plano pessoal grátis).</li>
+            <li>1. Instale o Tailscale no PC e no celular e entre na mesma conta (ex.: GitHub). Linux: <code className="text-cyan">curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up</code></li>
             <li>2. No painel do Tailscale → DNS: ative MagicDNS e HTTPS Certificates.</li>
-            <li>3. No PC, com o STARK rodando:</li>
+            <li>3. No PC, com o STARK rodando (Windows/Mac: sem sudo). Se aparecer um link para ativar HTTPS, abra e confirme:</li>
           </ol>
           <div className="mt-2 flex items-center gap-2 rounded-lg border border-line bg-black/40 px-3 py-2">
             <code className="flex-1 font-mono text-sm text-cyan">{TS_CMD}</code>

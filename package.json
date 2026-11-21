@@ -18,7 +18,7 @@
     "start:api": "cd services/engine && uv run uvicorn stark_engine.main:app --host 127.0.0.1 --port 8787",
     "start:worker": "cd services/engine && uv run python -m stark_engine.worker",
     "start:web": "cd apps/web && pnpm start -H 127.0.0.1 -p 3000",
-    "phone": "tailscale serve --bg 3000"
+    "phone": "tailscale serve --bg 3000 || sudo tailscale serve --bg 3000"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"
