@@ -44,24 +44,45 @@ O repositório é privado: o `git clone` pede login do GitHub uma vez.
 **Atualização automática:** o serviço confere o GitHub a cada 15 min, baixa a versão nova, recompila e reinicia sozinho.
 Os apps do PC e do celular mostram a versão nova ao abrir. Para forçar: **Config → Atualizar agora**.
 
-## 3. Celular (Tailscale, grátis e privado)
+## 3. Celular sem Tailscale: app online (grátis, igual seus outros apps)
 
-1. Instale o Tailscale no PC e no celular, mesma conta (plano pessoal grátis). Linux: `curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up` (abre o login; use a mesma conta do celular).
+O app fica na **Vercel** (link fixo, atualiza sozinho a cada versão nova). O PC manda o radar e os cortes prontos para o
+**Supabase**, numa área separada (`clipzou`) no projeto *giordanbohrer3-cpu's Project*, que já está criada. O PC continua
+fazendo os cortes.
+
+1. **Chave:** supabase.com → *giordanbohrer3-cpu's Project* → Project Settings → API Keys → **Secret keys** → criar
+   (nome `clipzou`) → copiar. Não mande a chave em chat.
+2. **PC:** Clipzou → **Config → Nuvem** → colar a chave → Salvar. Aparece "sincronizando".
+3. **Vercel:** vercel.com/new → Import Git Repository → `stark-clip-ai` → **Root Directory: `apps/web`** →
+   Environment Variables: `SUPABASE_SECRET_KEY` = a mesma chave · `CLIPZOU_PASSWORD` = uma senha sua → **Deploy**.
+4. Copie o link `https://….vercel.app`. No PC: **Config → Nuvem → Link do app** → Salvar. A página `/install` mostra o QR.
+5. **Celular:** escaneie o QR, entre com a senha e toque em **Instalar app** (iPhone: Safari → Compartilhar → Tela de Início).
+
+O que funciona online: radar, feed (assistir e baixar), legenda, "Buscar agora", "Cortar agora", campanhas, listas do
+radar e "Atualizar o PC". Edição fina, publicação e chaves ficam no PC. Com o PC desligado, o app mostra o último radar e
+os cortes já enviados.
+
+Limites grátis: o projeto do Supabase é dividido com seus outros apps, então o Clipzou se limita sozinho.
+- Até 500 MB de cortes na nuvem. Os mais velhos saem da nuvem e continuam no PC.
+- Até 2 GB de download por mês (a variável `CLIPZOU_EGRESS_CAP_MB` na Vercel muda esse limite).
+- Corte acima de 48 MB fica só no PC.
+
+### Opcional: Tailscale (sem nuvem)
+
+1. Instale o Tailscale no PC e no celular, na mesma conta. Linux: `curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up`.
 2. Painel do Tailscale → **DNS** → ative **MagicDNS** e **HTTPS Certificates**.
-3. No PC, com o app rodando: `pnpm run phone` (= `sudo tailscale serve --bg 3000` no Linux; se aparecer link para ativar HTTPS, abra e confirme) → mostra `https://seu-pc.<tailnet>.ts.net`.
-4. No celular abra `https://seu-pc.<tailnet>.ts.net/install`:
-   - Android (Chrome): **Instalar app**
-   - iPhone (Safari): Compartilhar → **Adicionar à Tela de Início**
-
-A página `/install` do PC mostra um QR code com esse endereço.
+3. No PC: `pnpm run phone` (no Linux, é o mesmo que `sudo tailscale serve --bg 3000`). No celular, abra `https://seu-pc.<tailnet>.ts.net/install`.
 
 ## Problemas comuns
 
 | Sintoma | Solução |
 |---|---|
-| Não aparece “Instalar” | precisa HTTPS (Tailscale) ou `localhost`; recarregue a página uma vez |
-| “Motor offline” | rode `pnpm start` no PC; o PC precisa estar ligado |
+| Não aparece “Instalar” | precisa HTTPS (app online na Vercel) ou `localhost`; recarregue a página uma vez |
+| “PC desligado” no app online | ligue o PC: o Clipzou liga sozinho e volta a mandar o radar e os cortes |
+| App online pede login sempre | defina `CLIPZOU_PASSWORD` na Vercel e faça Redeploy |
+| “Motor offline” no PC | abra pelo ícone Clipzou (ele liga o serviço); se persistir: `bash scripts/service.sh status` |
 | iPhone não instala | use o Safari (outros navegadores no iOS não instalam) |
 | Mesma rede Wi-Fi sem Tailscale | abre via `http://IP-do-PC:3000`, mas sem HTTPS não instala como app |
 
-Nada fica público: o Tailscale só libera aparelhos da sua conta.
+Segurança: o app online exige senha (cookie assinado), a chave secreta fica só no servidor da Vercel e no PC
+(criptografada), e os cortes ficam numa pasta privada com links temporários de 1 hora.

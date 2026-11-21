@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
+const CLOUD = process.env.VERCEL === "1" || process.env.CLIPZOU_MODE === "cloud";
+
 const nextConfig: NextConfig = {
   output: process.env.NEXT_OUTPUT === "standalone" ? "standalone" : undefined,
+  distDir: process.env.NEXT_DIST_DIR || ".next", // teste local do modo nuvem em pasta separada
+  env: { NEXT_PUBLIC_CLIPZOU_CLOUD: CLOUD ? "1" : "" }, // app online (Vercel) x app no PC
   poweredByHeader: false,
   async headers() {
     return [{

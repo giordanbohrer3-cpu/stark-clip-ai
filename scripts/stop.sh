@@ -8,6 +8,7 @@ if [ "${1:-}" != "--app-only" ]; then
 fi
 pkill -f "concurrently -k -n api,worker" 2>/dev/null
 pkill -f "stark_engine.live.radar" 2>/dev/null
+pkill -f "stark_engine.cloud" 2>/dev/null
 pkill -f "stark_engine.worker" 2>/dev/null
 pkill -f "uvicorn stark_engine.main:app" 2>/dev/null
 pkill -f "next start -H 127.0.0.1 -p 3000" 2>/dev/null

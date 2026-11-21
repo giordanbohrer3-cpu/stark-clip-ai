@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Badge, Button, Empty, Field, Input, Note, Panel, Select, Toggle } from "@/components/ui";
 import { api, fileUrl, usePoll } from "@/lib/api";
 import { ago } from "@/lib/format";
+import { CLOUD } from "@/lib/mode";
 import type { FeedItem, InboxStatus, QueueItem } from "@/lib/types";
 
 const ORIGIN: Record<string, string> = {
@@ -42,8 +43,8 @@ function InboxCard() {
   return (
     <Panel eyebrow="automático" title="Pasta de entrada" id="inbox" actions={b?.confirmed && (
       <span className="flex gap-1.5">
-        <Button size="sm" variant="subtle" loading={busy === "open"} icon={<FolderOpen className="size-3.5" />}
-          onClick={() => run("open", () => api("/inbox/open", { method: "POST" }))}>Abrir pasta</Button>
+        {!CLOUD && <Button size="sm" variant="subtle" loading={busy === "open"} icon={<FolderOpen className="size-3.5" />}
+          onClick={() => run("open", () => api("/inbox/open", { method: "POST" }))}>Abrir pasta</Button>}
         <Button size="sm" variant="primary" loading={busy === "scan"} icon={<RefreshCw className="size-3.5" />}
           onClick={() => run("scan", () => api("/inbox/scan", { method: "POST" }))}>Buscar agora</Button>
       </span>
@@ -138,20 +139,25 @@ export default function FeedPage() {
           {feed.data.map((it) => (
             <li key={it.clip.id} className="overflow-hidden rounded-2xl border border-line bg-black/30">
               <div className="relative aspect-[9/16] bg-black">
-                <video src={fileUrl(it.clip.id, "output")} poster={fileUrl(it.clip.id, "cover")} controls playsInline preload="none"
-                  className="size-full object-cover" />
+                {!CLOUD || it.cloud ? (
+                  <video src={fileUrl(it.clip.id, "output")} poster={fileUrl(it.clip.id, "cover")} controls playsInline preload="none"
+                    className="size-full object-cover" />
+                ) : <div className="grid size-full place-items-center p-4 text-center text-xs text-muted">{it.title}</div>}
                 <span className="pointer-events-none absolute left-2 top-2"><Badge className="border-violet/50 bg-black/60 text-violet">{ORIGIN[it.origin] ?? it.origin}</Badge></span>
               </div>
               <div className="space-y-2 p-2.5">
                 <p className="line-clamp-2 text-sm font-semibold">{it.title}</p>
                 <p className="text-[0.7rem] text-muted">{it.channel ? `@${it.channel} · ` : ""}{it.clip.duration_s.toFixed(0)} s · {ago(it.clip.updated_at)}</p>
+                {CLOUD && !it.cloud && <p className="text-[0.7rem] text-warn">{it.only_pc || "subindo para a nuvem…"}</p>}
                 <div className="grid grid-cols-2 gap-1.5">
-                  <a href={fileUrl(it.clip.id, "output", true)} className="inline-flex h-8 items-center justify-center gap-1 rounded-[10px] bg-gradient-to-r from-violet to-cyan text-xs font-semibold text-[#12041a]">
-                    <Download className="size-3.5" />Baixar
-                  </a>
+                  {!CLOUD || it.cloud ? (
+                    <a href={fileUrl(it.clip.id, "output", true)} className="inline-flex h-8 items-center justify-center gap-1 rounded-[10px] bg-gradient-to-r from-violet to-cyan text-xs font-semibold text-[#12041a]">
+                      <Download className="size-3.5" />Baixar
+                    </a>
+                  ) : <span className="inline-flex h-8 items-center justify-center rounded-[10px] border border-line text-xs text-muted">só no PC</span>}
                   <Button size="sm" onClick={() => copy(it)} icon={<ClipboardCopy className="size-3.5" />}>{copied === it.clip.id ? "Copiado" : "Legenda"}</Button>
-                  <Link href={`/studio/${it.clip.id}`}><Button size="sm" variant="subtle" className="w-full" icon={<PenLine className="size-3.5" />}>Editar</Button></Link>
-                  <Link href={`/publish?clip=${it.clip.id}`}><Button size="sm" variant="subtle" className="w-full" icon={<CalendarClock className="size-3.5" />}>Agendar</Button></Link>
+                  {!CLOUD && <Link href={`/studio/${it.clip.id}`}><Button size="sm" variant="subtle" className="w-full" icon={<PenLine className="size-3.5" />}>Editar</Button></Link>}
+                  {!CLOUD && <Link href={`/publish?clip=${it.clip.id}`}><Button size="sm" variant="subtle" className="w-full" icon={<CalendarClock className="size-3.5" />}>Agendar</Button></Link>}
                 </div>
               </div>
             </li>

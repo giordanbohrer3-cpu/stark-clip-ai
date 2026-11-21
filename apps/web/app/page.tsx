@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Badge, Button, Empty, Field, Input, Note, Panel, Toggle } from "@/components/ui";
 import { api, usePoll } from "@/lib/api";
 import { ago, num } from "@/lib/format";
+import { CLOUD } from "@/lib/mode";
 import type { ChannelRow, HotVideo, LiveRow, LiveStatus, MomentRow } from "@/lib/types";
 
 const MOMENT: Record<string, [string, string]> = {
@@ -94,7 +95,12 @@ export default function RadarPage() {
           label={`YouTube: ${s?.youtube_rss ?? "—"}${s?.youtube_configured ? ` · API ${s.youtube_api}` : ""}`} />
         {s?.twitch_connected && <Chip ok label={`login Twitch: ${s.twitch_login}`} />}
       </div>
-      {s && !s.radar_running && (
+      {s && CLOUD && !s.pc_online && (
+        <Note tone="warn">
+          PC desligado{s.pc_seen_at ? ` (visto ${ago(s.pc_seen_at)})` : ""}: mostrando o último radar. Cortes novos saem quando ele ligar.
+        </Note>
+      )}
+      {s && !s.radar_running && !(CLOUD && !s.pc_online) && (
         <Note tone="warn">Radar desligado: abra o Clipzou no PC (ícone no menu). Ele liga sozinho e se atualiza sozinho.</Note>
       )}
 
@@ -190,8 +196,9 @@ export default function RadarPage() {
       <Panel eyebrow="o que vira corte automático" title="Fontes autorizadas" id="sources" actions={
         s?.twitch_connected
           ? <Button size="sm" onClick={() => run("dc", () => api("/live/twitch", { method: "DELETE" }))}>Desconectar @{s.twitch_login}</Button>
-          : s?.twitch_configured
+          : s?.twitch_configured && !CLOUD
             ? <Button size="sm" variant="primary" onClick={connect} loading={busy === "tw"} icon={<Zap className="size-3.5" />}>Conectar Twitch</Button>
+            : CLOUD ? <span className="text-xs text-muted">conectar a Twitch: pelo PC</span>
             : <span className="text-xs text-muted">corte automático de live: precisa da chave grátis da Twitch (opcional)</span>
       }>
         <div className="grid gap-6 lg:grid-cols-2">

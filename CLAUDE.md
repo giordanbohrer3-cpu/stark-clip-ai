@@ -23,7 +23,8 @@ Funciona sem chave: famosos da Twitch pelo chat público, YouTubers famosos pelo
 | Saúde | `curl -s http://127.0.0.1:3000/api/engine/health` |
 | Abrir painel | `xdg-open http://127.0.0.1:3000` (macOS: `open`) |
 | Instalar como app | abrir `http://127.0.0.1:3000/install` no Chrome/Edge |
-| Celular | `pnpm run phone` (Tailscale) |
+| Celular (app online) | Config → Nuvem (chave secreta do Supabase) + Vercel (Root `apps/web`; variáveis `SUPABASE_SECRET_KEY`, `CLIPZOU_PASSWORD`) — `docs/INSTALL.md` §3 |
+| Celular (alternativa) | `pnpm run phone` (Tailscale) |
 | Testes | `cd services/engine && uv run pytest -q` · `cd apps/web && pnpm exec tsc --noEmit && pnpm lint` |
 
 Diagnóstico rápido: `git status -sb`, `command -v pnpm uv node ffmpeg`, curl na saúde.
@@ -41,4 +42,7 @@ em segundo plano e confira `curl -s http://127.0.0.1:3000/api/engine/live/status
 - Servidores longos (`start.sh`, `pnpm start`) sempre em segundo plano; nunca bloqueie a sessão.
 - Modo grátis (`STARK_FREE_ONLY=true`): não ative APIs pagas.
 - Direitos: só processar vídeo com autorização registrada; não baixar vídeos do YouTube.
+- Nuvem: Supabase do usuário, projeto `pyxbnpplflraaztljgos`, área `clipzou` (só a chave secreta acessa). Nunca mexa em
+  outras tabelas desse projeto (são de outros apps dele). A chave secreta o usuário cola em Config → Nuvem e na Vercel;
+  NÃO peça no chat.
 - Docs: `docs/ARCHITECTURE.md`, `docs/INSTALL.md`, `docs/INTEGRATIONS.md`.

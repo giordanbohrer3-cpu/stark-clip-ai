@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Badge, Button, Field, Input, Note, Panel, Select, Textarea, Toggle } from "@/components/ui";
 import { api, ApiError, usePoll } from "@/lib/api";
 import { ago, usd } from "@/lib/format";
+import { CloudPanel, CloudSettings } from "@/components/cloud-panels";
+import { CLOUD } from "@/lib/mode";
 import type { Settings, SettingsResp } from "@/lib/types";
 
 const AUTONOMY = [
@@ -16,6 +18,10 @@ type Usage = { id: number; provider: string; model: string; task: string; input_
 type Audit = { id: number; actor: string; action: string; target: string; created_at: string };
 
 export default function SettingsPage() {
+  return CLOUD ? <CloudSettings /> : <LocalSettings />;
+}
+
+function LocalSettings() {
   const cfg = usePoll<SettingsResp>("/settings", 0);
   const usage = usePoll<Usage[]>("/ai/usage?limit=20", 0);
   const audit = usePoll<Audit[]>("/audit?limit=30", 10000);
@@ -173,6 +179,8 @@ export default function SettingsPage() {
             <Field label="Palavras/linha"><Input type="number" min={1} max={5} value={s.captions.words_per_line} onChange={(e) => set("captions", { words_per_line: +e.target.value })} /></Field>
           </div>
         </Panel>
+
+        <CloudPanel />
 
         <Panel eyebrow="máquina de clipes" title="Radar ao vivo" id="radar">
           <div className="grid gap-3 sm:grid-cols-2">

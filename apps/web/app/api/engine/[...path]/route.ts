@@ -2,6 +2,8 @@
    repassa Range (seek de vídeo) e faz streaming de uploads/downloads. */
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { cloudRoute } from "@/lib/cloud";
+import { CLOUD_SERVER } from "@/lib/session";
 
 const ENGINE = process.env.STARK_ENGINE_URL ?? "http://127.0.0.1:8787";
 const PASS_REQ = ["content-type", "range", "accept", "if-none-match", "if-range"];
@@ -22,6 +24,7 @@ async function forward(req: Request, ctx: { params: Promise<{ path: string[] }> 
   if (parts.some((p) => p === ".." || p === "." || p.includes("\\"))) {
     return Response.json({ detail: "caminho inválido" }, { status: 400 });
   }
+  if (CLOUD_SERVER) return cloudRoute(req, parts); // app online: dados vêm do PC via Supabase
   const search = new URL(req.url).search;
   const target = `${ENGINE}/api/v1/${parts.map(encodeURIComponent).join("/")}${search}`;
   const headers = new Headers({ authorization: `Bearer ${token()}` });

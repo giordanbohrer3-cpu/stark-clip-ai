@@ -4,7 +4,8 @@
 
 Funciona **sem chave nenhuma**: radar dos streamers famosos (chat público da Twitch) e dos YouTubers famosos (feed RSS
 público), e uma **pasta de entrada** (`~/Clipzou/Entrada`) onde cada vídeo autorizado vira cortes prontos no Feed, sozinho.
-Roda em segundo plano: liga com o PC e se atualiza sozinho do GitHub.
+Roda em segundo plano: liga com o PC e se atualiza sozinho do GitHub. No celular, sem Tailscale: app online na Vercel
+(com senha) que recebe o radar e os cortes do PC pelo Supabase grátis ([docs/INSTALL.md](docs/INSTALL.md) §3).
 
 Central de comando para transformar **vídeos autorizados** em cortes verticais prontos: transcrição local, 3 cortes por vídeo com score explicável, legendas animadas, reframe 9:16, render, agenda e publicação assistida.
 

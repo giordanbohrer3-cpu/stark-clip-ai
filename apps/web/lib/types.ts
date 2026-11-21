@@ -100,6 +100,12 @@ export type LiveStatus = {
   lives: number; viewers: number; moments_today: number; clips_ready: number; game: string | null;
   keyless: boolean; youtube_rss: string; watching: number; chat_rate: number;
   inbox: { status?: string; imported?: number; error?: string };
+  cloud?: boolean; pc_online?: boolean; pc_seen_at?: string | null;
+};
+export type CloudStatus = {
+  cloud?: boolean; configured?: boolean; enabled?: boolean; url?: string; app_url?: string; running?: boolean;
+  error?: string; last_sync_at?: string | null; uploaded_mb?: number; storage_limit_mb?: number; egress_mb?: number;
+  egress_cap_mb?: number; pc_online?: boolean; pc_seen_at?: string | null;
 };
 export type LiveRow = {
   id: number; platform: "twitch" | "youtube"; channel: string; display_name: string; title: string; viewers: number;
@@ -125,4 +131,7 @@ export type InboxStatus = {
   errors: { title: string; error: string | null }[];
 };
 export type QueueItem = { id: number; kind: string; status: string; progress: number; stage: string; label: string; title: string };
-export type FeedItem = { clip: Clip; video_id: number; title: string; origin: string; channel: string | null; source_url: string | null };
+export type FeedItem = {
+  clip: Clip; video_id: number; title: string; origin: string; channel: string | null; source_url: string | null;
+  cloud?: { output: string; cover: string | null; size: number } | null; only_pc?: string | null;
+};

@@ -6,17 +6,19 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Suspense, useState } from "react";
 import { api, usePoll } from "@/lib/api";
+import { CLOUD } from "@/lib/mode";
 import { InstallChip } from "./pwa";
 import type { Health, SettingsResp } from "@/lib/types";
 
-const NAV = [
-  { href: "/", label: "Radar", icon: Radar },
-  { href: "/feed", label: "Feed", icon: Flame },
-  { href: "/library", label: "Vídeos", icon: Film },
-  { href: "/publish", label: "Publicar", icon: Send },
-  { href: "/painel", label: "Painel", icon: LayoutDashboard },
-  { href: "/settings", label: "Config", icon: Settings2 },
+const ALL = [
+  { href: "/", label: "Radar", icon: Radar, cloud: true },
+  { href: "/feed", label: "Feed", icon: Flame, cloud: true },
+  { href: "/library", label: "Vídeos", icon: Film, cloud: false },
+  { href: "/publish", label: "Publicar", icon: Send, cloud: false },
+  { href: "/painel", label: "Painel", icon: LayoutDashboard, cloud: false },
+  { href: "/settings", label: "Config", icon: Settings2, cloud: true },
 ];
+const NAV = CLOUD ? ALL.filter((n) => n.cloud) : ALL; // online: o resto só no PC
 
 function isActive(path: string, href: string) {
   return href === "/" ? path === "/" || path.startsWith("/trends") : path.startsWith(href)
@@ -85,10 +87,11 @@ export function Shell({ children }: { children: ReactNode }) {
         <div className="mt-auto space-y-2 px-2 text-xs text-muted">
           <p className="flex items-center gap-2">
             <span className={clsx("size-2 rounded-full", online ? "bg-ok shadow-[0_0_8px_var(--ok)]" : "bg-bad")} />
-            motor {online ? "online" : "offline"} {health.data && `v${health.data.version}`}
+            {CLOUD ? `PC ${online ? "ligado" : "desligado"}` : `motor ${online ? "online" : "offline"}`} {health.data?.version && `v${health.data.version}`}
           </p>
-          {health.data && <p className="font-mono">whisper: {health.data.whisper_model}</p>}
+          {health.data?.whisper_model && <p className="font-mono">whisper: {health.data.whisper_model}</p>}
           <Link href="/install" className="block text-cyan hover:underline">Instalar no celular/PC</Link>
+          {CLOUD && <button onClick={() => fetch("/api/login", { method: "DELETE" }).then(() => window.location.replace("/login"))} className="block text-muted hover:text-bad">Sair</button>}
         </div>
       </aside>
 
@@ -105,7 +108,7 @@ export function Shell({ children }: { children: ReactNode }) {
           </div>
           <div className="flex items-center gap-2">
             <InstallChip />
-            {!online && <span className="rounded-full border border-bad/50 px-2 py-0.5 text-xs text-bad">motor offline</span>}
+            {!online && <span className="rounded-full border border-bad/50 px-2 py-0.5 text-xs text-bad">{CLOUD ? "PC desligado" : "motor offline"}</span>}
             <button onClick={toggle} disabled={busy || !cfg.data} aria-pressed={!!paused}
               className={clsx("inline-flex h-9 items-center gap-2 rounded-[10px] border px-3 text-xs font-semibold uppercase tracking-wider",
                 paused ? "border-warn/60 bg-warn/15 text-warn" : "border-line text-muted hover:border-bad/50 hover:text-bad")}>
@@ -124,7 +127,7 @@ export function Shell({ children }: { children: ReactNode }) {
         </main>
       </div>
 
-      <nav aria-label="Principal (móvel)" className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-line bg-black/85 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
+      <nav aria-label="Principal (móvel)" className={clsx("fixed inset-x-0 bottom-0 z-30 grid border-t border-line bg-black/85 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden", CLOUD ? "grid-cols-3" : "grid-cols-6")}>
         <Suspense fallback={<NavItems mobile />}><LiveNav mobile /></Suspense>
       </nav>
     </div>

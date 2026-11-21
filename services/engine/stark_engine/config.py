@@ -38,6 +38,11 @@ class Settings(BaseSettings):
     twitch_client_secret: str = ""  # app grátis em dev.twitch.tv (Confidential)
     twitch_redirect_uri: str = "http://localhost:3000/api/engine/live/twitch/callback"
 
+    # app online (Vercel) sem Tailscale: o PC sincroniza com o Supabase grátis (área separada "clipzou")
+    cloud_url: str = "https://pyxbnpplflraaztljgos.supabase.co"
+    cloud_key: str = ""  # chave secreta do Supabase (melhor colar em Config → Nuvem; fica criptografada)
+    engine_url: str = "http://127.0.0.1:8787"  # motor local (o sincronizador fala com ele)
+
     free_only: bool = True  # 100% grátis: APIs pagas bloqueadas (STARK_FREE_ONLY=false libera)
     worker_poll_s: float = 1.0
     lease_s: int = 120

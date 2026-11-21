@@ -4,7 +4,7 @@
   "description": "Clipzou — máquina de clipes (radar ao vivo + cortes prontos)",
   "scripts": {
     "setup": "cd services/engine && uv sync && cd ../../apps/web && pnpm install",
-    "dev": "concurrently -k -n api,worker,radar,web -c cyan,magenta,yellow,blue \"pnpm:dev:api\" \"pnpm:dev:worker\" \"pnpm:start:radar\" \"pnpm:dev:web\"",
+    "dev": "concurrently -k -n api,worker,radar,cloud,web -c cyan,magenta,yellow,green,blue \"pnpm:dev:api\" \"pnpm:dev:worker\" \"pnpm:start:radar\" \"pnpm:start:cloud\" \"pnpm:dev:web\"",
     "dev:api": "cd services/engine && uv run uvicorn stark_engine.main:app --host 127.0.0.1 --port 8787 --reload --reload-dir stark_engine",
     "dev:worker": "cd services/engine && uv run python -m stark_engine.worker",
     "dev:web": "cd apps/web && pnpm dev -H 127.0.0.1",
@@ -14,12 +14,13 @@
     "typecheck": "cd apps/web && pnpm exec tsc --noEmit",
     "lint": "cd apps/web && pnpm lint && cd ../../services/engine && uv run ruff check stark_engine",
     "build": "cd apps/web && pnpm build",
-    "start": "concurrently -k -n api,worker,radar,web -c cyan,magenta,yellow,blue \"pnpm:start:api\" \"pnpm:start:worker\" \"pnpm:start:radar\" \"pnpm:start:web\"",
+    "start": "concurrently -k -n api,worker,radar,cloud,web -c cyan,magenta,yellow,green,blue \"pnpm:start:api\" \"pnpm:start:worker\" \"pnpm:start:radar\" \"pnpm:start:cloud\" \"pnpm:start:web\"",
     "start:api": "cd services/engine && uv run uvicorn stark_engine.main:app --host 127.0.0.1 --port 8787",
     "start:worker": "cd services/engine && uv run python -m stark_engine.worker",
     "start:web": "cd apps/web && pnpm start -H 127.0.0.1 -p 3000",
     "phone": "tailscale serve --bg 3000 || sudo tailscale serve --bg 3000",
-    "start:radar": "cd services/engine && uv run python -m stark_engine.live.radar"
+    "start:radar": "cd services/engine && uv run python -m stark_engine.live.radar",
+    "start:cloud": "cd services/engine && uv run python -m stark_engine.cloud"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

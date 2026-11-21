@@ -4,8 +4,9 @@ import qrcode from "qrcode-generator";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Field, Input, Note, Panel } from "@/components/ui";
 import { usePoll } from "@/lib/api";
+import { CLOUD } from "@/lib/mode";
 import { runInstall, useInstallPrompt, useJustInstalled, useOrigin, usePlatform, useStandalone } from "@/lib/pwa";
-import type { Health } from "@/lib/types";
+import type { CloudStatus, Health } from "@/lib/types";
 
 const TABS = [
   { id: "android", label: "Android" },
@@ -16,19 +17,19 @@ type Tab = (typeof TABS)[number]["id"];
 
 const STEPS: Record<Tab, string[]> = {
   android: [
-    "Abra o endereço HTTPS do Tailscale no Chrome do celular (ex.: https://meu-pc.tailnet.ts.net/install).",
-    "Toque em “Instalar app” nesta página (ou menu ⋮ → Instalar aplicativo).",
-    "O ícone Clipzou aparece na tela inicial e abre em tela cheia.",
+    "Aponte a câmera para o QR abaixo (ou abra o link do app online no Chrome do celular).",
+    "Entre com a sua senha e toque em “Instalar app” (ou menu ⋮ → Instalar aplicativo).",
+    "O ícone Clipzou aparece na tela inicial e se atualiza sozinho.",
   ],
   ios: [
-    "Abra o endereço HTTPS do Tailscale no Safari (precisa ser o Safari).",
-    "Toque em Compartilhar (quadrado com seta ↑).",
+    "Abra o link do app online no Safari (precisa ser o Safari).",
+    "Entre com a sua senha e toque em Compartilhar (quadrado com seta ↑).",
     "Escolha “Adicionar à Tela de Início” → Adicionar.",
   ],
   desktop: [
-    "No PC, com o app rodando (pnpm start), abra http://127.0.0.1:3000/install no Chrome ou Edge.",
+    "No PC, abra pelo ícone Clipzou no menu (ele já liga sozinho com o computador).",
     "Clique em “Instalar app” aqui ou no ícone de instalar na barra de endereço.",
-    "O Clipzou abre em janela própria e ganha atalho no menu Iniciar/Dock.",
+    "O Clipzou abre em janela própria e se atualiza sozinho.",
   ],
 };
 
@@ -64,7 +65,9 @@ export default function InstallPage() {
   const { origin, secure, local } = useOrigin();
   const health = usePoll<Health>("/health", 10000);
   const [tab, setTab] = useState<Tab | null>(null);
-  const [phoneUrl, setPhoneUrl] = useState("");
+  const cloudSt = usePoll<CloudStatus>(CLOUD ? null : "/cloud/status", 0);
+  const [typedUrl, setPhoneUrl] = useState("");
+  const phoneUrl = typedUrl || cloudSt.data?.app_url || "";
   const [sw, setSw] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -98,7 +101,7 @@ export default function InstallPage() {
           </Button>
         ) : !secure ? (
           <Note tone="warn">
-            Endereço sem HTTPS: o navegador bloqueia a instalação. No celular, use o endereço HTTPS do Tailscale (passo a passo abaixo).
+            Endereço sem HTTPS: o navegador bloqueia a instalação. No celular, use o link do app online (QR abaixo).
           </Note>
         ) : platform === "ios" ? (
           <Note tone="info"><Share className="mr-1 inline size-4" aria-hidden />No Safari: Compartilhar → “Adicionar à Tela de Início”.</Note>
@@ -129,8 +132,8 @@ export default function InstallPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Panel eyebrow="celular" title="Abrir no telefone" id="qr">
           {local && (
-            <Field label="Endereço HTTPS do Tailscale" hint="aparece ao rodar o comando abaixo no PC">
-              <Input value={phoneUrl} onChange={(e) => setPhoneUrl(e.target.value)} placeholder="https://meu-pc.tailnet.ts.net" inputMode="url" />
+            <Field label="Link do app online" hint="vem de Config → Nuvem (ou cole um endereço HTTPS)">
+              <Input value={phoneUrl} onChange={(e) => setPhoneUrl(e.target.value)} placeholder="https://clipzou-xxxx.vercel.app" inputMode="url" />
             </Field>
           )}
           {svg ? (
@@ -140,11 +143,12 @@ export default function InstallPage() {
               <p className="break-all text-center font-mono text-xs text-muted">{target}</p>
             </div>
           ) : (
-            <p className="mt-4 text-sm text-muted">Cole o endereço HTTPS para gerar o QR code e escanear com a câmera do celular.</p>
+            <p className="mt-4 text-sm text-muted">Coloque o link do app online em Config → Nuvem: o QR aparece aqui para escanear com o celular.</p>
           )}
         </Panel>
 
-        <Panel eyebrow="acesso grátis e privado" title="Tailscale no PC e no celular" id="ts">
+        <Panel eyebrow="opcional" title="Alternativa sem nuvem: Tailscale" id="ts">
+          <p className="mb-2 text-sm text-muted">Não precisa se você usa o app online. Serve para abrir o app direto do PC, sem passar pela nuvem.</p>
           <ol className="space-y-2 text-sm text-muted">
             <li>1. Instale o Tailscale no PC e no celular e entre na mesma conta (ex.: GitHub). Linux: <code className="text-cyan">curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up</code></li>
             <li>2. No painel do Tailscale → DNS: ative MagicDNS e HTTPS Certificates.</li>
