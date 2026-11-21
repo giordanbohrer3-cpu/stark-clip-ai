@@ -14,7 +14,9 @@ App pessoal de cortes verticais. Motor Python (`services/engine`, FastAPI + work
 |---|---|
 | Atualizar código | `git pull --ff-only` |
 | Instalar (idempotente) | `STARK_NO_START=1 bash scripts/install.sh` |
-| Ligar (deixe em segundo plano) | `STARK_NO_BROWSER=1 bash scripts/start.sh` |
+| Ligar (atualiza sozinho; deixe em segundo plano) | `STARK_NO_BROWSER=1 bash scripts/start.sh` |
+| Atualizar e reiniciar | `bash scripts/update.sh` (em segundo plano) |
+| Parar | `bash scripts/stop.sh` |
 | Saúde | `curl -s http://127.0.0.1:3000/api/engine/health` |
 | Abrir painel | `xdg-open http://127.0.0.1:3000` (macOS: `open`) |
 | Instalar como app | abrir `http://127.0.0.1:3000/install` no Chrome/Edge |

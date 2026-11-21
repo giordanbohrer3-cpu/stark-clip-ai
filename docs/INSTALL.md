@@ -26,6 +26,8 @@ O repositório é privado: o `git clone` pede login do GitHub uma vez.
 - Windows: duplo clique em `scripts\start.cmd` · Linux: menu → **STARK CLIP AI** (ou `bash scripts/start.sh`) · macOS: `bash scripts/start.sh`
 - Abra http://127.0.0.1:3000/install no Chrome ou Edge → **Instalar app**
 
+**Atualização automática:** toda vez que o STARK liga, ele baixa a versão nova do GitHub e recompila. Os apps do PC e do celular mostram a versão nova ao abrir. Com ele já ligado: menu → STARK CLIP AI → **Atualizar e reiniciar** (ou `bash scripts/update.sh`).
+
 ## 3. Celular (Tailscale, grátis e privado)
 
 1. Instale o Tailscale no PC e no celular, mesma conta (plano pessoal grátis). Linux: `curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up` (abre o login; use a mesma conta do celular).

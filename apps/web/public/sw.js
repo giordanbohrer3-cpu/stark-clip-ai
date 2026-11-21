@@ -1,6 +1,7 @@
 /* STARK service worker: instalação PWA + página offline.
    Regras: /api nunca é cacheado; /_next/static (nomes com hash) cache-first; páginas network-first. */
-const VERSION = "stark-v1";
+const VERSION = "stark-v2";
+const MAX_STATIC = 250; // evita acumular arquivos de versões antigas
 const OFFLINE = "/offline.html";
 const PRECACHE = [OFFLINE, "/icons/icon-192.png", "/icons/icon-512.png"];
 
@@ -27,7 +28,11 @@ self.addEventListener("fetch", (event) => {
       caches.match(req).then((hit) => hit || fetch(req).then((res) => {
         if (res.ok) {
           const copy = res.clone();
-          caches.open(VERSION).then((c) => c.put(req, copy));
+          caches.open(VERSION).then(async (c) => {
+            await c.put(req, copy);
+            const keys = (await c.keys()).filter((k) => !PRECACHE.includes(new URL(k.url).pathname));
+            for (const k of keys.slice(0, Math.max(0, keys.length - MAX_STATIC))) await c.delete(k);
+          });
         }
         return res;
       })),

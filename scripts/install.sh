@@ -65,6 +65,15 @@ Exec=bash "$ROOT/scripts/start.sh"
 Icon=$ROOT/apps/web/public/icons/icon-512.png
 Terminal=true
 Categories=AudioVideo;Video;
+Actions=update;stop;
+
+[Desktop Action update]
+Name=Atualizar e reiniciar
+Exec=bash "$ROOT/scripts/update.sh"
+
+[Desktop Action stop]
+Name=Parar STARK
+Exec=bash "$ROOT/scripts/stop.sh"
 EOF
 fi
 
