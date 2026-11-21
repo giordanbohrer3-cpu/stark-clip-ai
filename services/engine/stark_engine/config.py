@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     ollama_url: str = "http://127.0.0.1:11434"
 
+    free_only: bool = True  # 100% grátis: APIs pagas bloqueadas (STARK_FREE_ONLY=false libera)
     worker_poll_s: float = 1.0
     lease_s: int = 120
 

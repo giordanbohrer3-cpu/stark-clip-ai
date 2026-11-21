@@ -49,6 +49,26 @@ class RightsIn(BaseModel):
     _v = field_validator("expires_at")(lambda cls, v: naive_utc(v))
 
 
+class UploadInit(BaseModel):
+    filename: str = Field(min_length=3, max_length=255)
+    size: int = Field(gt=0)
+    rights_type: Literal["own", "licensed", "creator_permission", "public_domain", "cc_by"]
+    holder: str = Field(min_length=2, max_length=120)
+    confirm: bool = False
+    title: str = Field(default="", max_length=200)
+    niche: str = Field(default="", max_length=80)
+    evidence: str = Field(default="", max_length=1000)
+    allows_edit: bool = True
+    allows_commercial: bool = False
+    reference_id: int | None = None
+
+
+class UploadSession(BaseModel):
+    upload_id: str
+    chunk_size: int
+    chunks: int
+
+
 class ProcessIn(BaseModel):
     mode: Literal["short", "long"] | None = None
 

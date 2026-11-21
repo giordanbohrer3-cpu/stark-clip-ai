@@ -55,7 +55,39 @@ def test_safe_path_traversal(data_dir):
     assert safe_path(data_dir, "media", "1") == data_dir / "media" / "1"
 
 
-def test_paid_provider_requires_explicit_confirm(client):
+def test_free_only_blocks_paid_providers(client):
+    body = {"data": {"ai": {"providers": {"anthropic": {"enabled": True}}}}}
+    assert client.patch("/api/v1/settings?confirm_paid=true", headers=AUTH, json=body).status_code == 403
+    route = {"data": {"ai": {"routing": {"cut_planning": "openai"}}}}
+    assert client.patch("/api/v1/settings", headers=AUTH, json=route).status_code == 403
+    st = client.get("/api/v1/settings", headers=AUTH).json()
+    assert st["env"]["free_only"] is True
+    assert {p["provider"] for p in st["providers"] if p["blocked"]} == {"anthropic", "openai"}
+
+
+def test_free_tier_gemini_costs_zero(monkeypatch, client):
+    from stark_engine import ai
+    monkeypatch.setattr(ai.providers, "_key", lambda p: "fake")
+    monkeypatch.setattr(ai.providers, "_request", lambda *a, **k: ('{"ok": true}', 100, 20))
+    with session_scope() as s:
+        ws = s.get(Workspace, 1)
+        ws.settings = deep_merge(ws.settings or {}, {"ai": {"monthly_budget_usd": 0.0,
+                                                            "providers": {"gemini": {"enabled": True}}}})
+        s.add(ws)
+        s.commit()
+        assert call_json(s, ws, "gemini", "t", "sys", "prompt") == {"ok": True}
+        with pytest.raises(AIError):
+            call_json(s, ws, "anthropic", "t", "sys", "prompt")
+        ws.settings = deep_merge(ws.settings, {"ai": {"providers": {"gemini": {"enabled": False}}}})
+        s.add(ws)
+        s.commit()
+    usage = client.get("/api/v1/ai/usage", headers=AUTH).json()
+    assert usage[0]["provider"] == "gemini" and usage[0]["cost_usd"] == 0
+
+
+def test_paid_provider_requires_explicit_confirm(monkeypatch, client):
+    from stark_engine.config import get_settings
+    monkeypatch.setattr(get_settings(), "free_only", False)
     body = {"data": {"ai": {"providers": {"anthropic": {"enabled": True}}}}}
     assert client.patch("/api/v1/settings", headers=AUTH, json=body).status_code == 428
     r = client.patch("/api/v1/settings?confirm_paid=true", headers=AUTH, json=body)
@@ -65,6 +97,8 @@ def test_paid_provider_requires_explicit_confirm(client):
 
 def test_budget_hard_limit_blocks_before_call(monkeypatch, client):
     from stark_engine import ai
+    from stark_engine.config import get_settings
+    monkeypatch.setattr(get_settings(), "free_only", False)
     monkeypatch.setattr(ai.providers, "_key", lambda p: "fake")
     called = []
     monkeypatch.setattr(ai.providers, "_request", lambda *a, **k: called.append(1))

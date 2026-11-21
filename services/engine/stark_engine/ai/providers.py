@@ -21,6 +21,12 @@ from ..security import ws_settings
 
 log = logging.getLogger(__name__)
 PROVIDERS = ("ollama", "gemini", "anthropic", "openai")  # ordem 'auto': local/grátis primeiro
+PAID = ("anthropic", "openai")  # sem free tier de API
+FREE_TIER = ("ollama", "gemini")  # Ollama local; Gemini: chave de projeto SEM faturamento
+
+
+def free_only() -> bool:
+    return get_settings().free_only
 
 
 class AIError(RuntimeError):
@@ -37,8 +43,11 @@ def _key(provider: str) -> str:
 
 def provider_status(ws: Workspace) -> list[dict]:
     cfg = ws_settings(ws)["ai"]["providers"]
-    return [{"provider": p, "enabled": bool(cfg[p]["enabled"]), "has_key": bool(_key(p)), "model": cfg[p]["model"],
-             "paid": p != "ollama", "price_in": cfg[p]["price_in"], "price_out": cfg[p]["price_out"]} for p in PROVIDERS]
+    fo = free_only()
+    return [{"provider": p, "enabled": bool(cfg[p]["enabled"]) and not (fo and p in PAID), "has_key": bool(_key(p)),
+             "model": cfg[p]["model"], "paid": p in PAID, "blocked": fo and p in PAID, "free_tier": p in FREE_TIER,
+             "price_in": 0.0 if fo else cfg[p]["price_in"], "price_out": 0.0 if fo else cfg[p]["price_out"]}
+            for p in PROVIDERS]
 
 
 def month_spend(session: Session, ws_id: int) -> float:
@@ -50,6 +59,8 @@ def month_spend(session: Session, ws_id: int) -> float:
 
 
 def usable(ws: Workspace, provider: str) -> bool:
+    if free_only() and provider in PAID:
+        return False
     cfg = ws_settings(ws)["ai"]["providers"].get(provider, {})
     return bool(cfg.get("enabled")) and bool(_key(provider))
 
@@ -118,7 +129,9 @@ def call_json(session: Session, ws: Workspace, provider: str, task: str, system:
         raise AIError(f"{provider} desativado ou sem chave")
     est_in = (len(system) + len(prompt)) / 3.5
     est = (est_in * cfg["price_in"] + max_tokens * cfg["price_out"]) / 1e6
-    if provider != "ollama" and ai["hard_limit"]:
+    if free_only() and provider in PAID:
+        raise AIError("modo 100% grátis: provedor pago bloqueado")
+    if provider != "ollama" and ai["hard_limit"] and not free_only():
         spent = month_spend(session, ws.id)
         if spent + est > float(ai["monthly_budget_usd"]):
             raise BudgetExceeded(f"orçamento mensal (US$ {ai['monthly_budget_usd']:.2f}) seria excedido")
@@ -126,7 +139,7 @@ def call_json(session: Session, ws: Workspace, provider: str, task: str, system:
     for attempt in range(3):
         try:
             text, tin, tout = _request(provider, cfg["model"], system, prompt, max_tokens)
-            cost = (tin * cfg["price_in"] + tout * cfg["price_out"]) / 1e6
+            cost = 0.0 if free_only() else (tin * cfg["price_in"] + tout * cfg["price_out"]) / 1e6
             session.add(AIUsage(workspace_id=ws.id, provider=provider, model=cfg["model"], task=task,
                                 input_tokens=tin, output_tokens=tout, cost_usd=round(cost, 6)))
             session.commit()

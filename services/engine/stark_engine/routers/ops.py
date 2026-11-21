@@ -10,7 +10,7 @@ from sqlalchemy import func
 from sqlmodel import select
 
 from .. import media
-from ..ai.providers import AIError, call_json, month_spend, provider_status, route
+from ..ai.providers import PAID, AIError, call_json, free_only, month_spend, provider_status, route
 from ..config import get_settings
 from ..copywriter import to_tag
 from ..jobqueue import request_cancel, retry
@@ -74,17 +74,22 @@ def _validate(new: dict, old: dict, confirm_paid: bool) -> None:
         if p not in DEFAULT_SETTINGS["ai"]["providers"]:
             raise HTTPException(422, f"provedor desconhecido: {p}")
         was = old["ai"]["providers"][p]["enabled"]
-        if cfg["enabled"] and not was and p != "ollama" and not confirm_paid:
+        if cfg["enabled"] and free_only() and p in PAID:
+            raise HTTPException(403, f"modo 100% grátis: {p} é pago (STARK_FREE_ONLY=false para liberar)")
+        if cfg["enabled"] and not was and p != "ollama" and not free_only() and not confirm_paid:
             raise HTTPException(428, f"ativar {p} gera cobrança na API: envie confirm_paid=true")
     for k, v in new["ai"]["routing"].items():
         if v not in ("heuristic", "auto", *DEFAULT_SETTINGS["ai"]["providers"]):
             raise HTTPException(422, f"rota inválida para {k}")
+        if free_only() and v in PAID:
+            raise HTTPException(403, f"modo 100% grátis: rota {k} não pode usar {v}")
 
 
 @router.get("/settings", response_model=dict, summary="Configurações efetivas do workspace")
 def get_ws_settings(ctx: CtxDep) -> dict:
     return {"settings": ctx.settings, "providers": provider_status(ctx.ws),
-            "env": {"youtube_api": bool(get_settings().youtube_api_key), "whisper_model": get_settings().whisper_model}}
+            "env": {"youtube_api": bool(get_settings().youtube_api_key), "whisper_model": get_settings().whisper_model,
+                    "free_only": free_only()}}
 
 
 @router.patch("/settings", response_model=dict, summary="Atualiza configurações (merge profundo)")
