@@ -128,7 +128,7 @@ def hot_videos(ctx: CtxDep) -> list[dict]:
     for t in ctx.session.exec(select(Trend).where(Trend.workspace_id == ctx.ws.id, Trend.source == "youtube_api")):
         m = t.metric or {}
         try:
-            hours = max(1.0, (time.time() - datetime.fromisoformat(m["published_at"].replace("Z", "+00:00")).timestamp())
+            hours = max(1.0, (time.time() - datetime.fromisoformat(m["published_at"]).timestamp())
                         / 3600)
         except (KeyError, ValueError, AttributeError):
             hours = 24.0

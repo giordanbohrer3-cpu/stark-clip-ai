@@ -106,7 +106,6 @@ def authorize_url(state: str) -> str:
 
 
 def _save_tokens(session: Session, ws_id: int, d: dict) -> Integration:
-    cid, _ = _creds()
     v = httpx.get(f"{ID}/validate", timeout=15, headers={"Authorization": f"OAuth {d['access_token']}"}).json()
     it = session.exec(select(Integration).where(Integration.workspace_id == ws_id,
                                                 Integration.provider == "twitch")).first()
