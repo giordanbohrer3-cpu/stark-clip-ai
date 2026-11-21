@@ -1,12 +1,16 @@
 """Versão do Clipzou e botão "Atualizar agora" (o serviço em segundo plano baixa e reinicia sozinho)."""
 from __future__ import annotations
 
+import json
 import os
+import shutil
 import subprocess
+import time
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 
+from .. import cloud
 from ..config import ENGINE_ROOT
 from ..security import CtxDep, require_role
 
@@ -21,6 +25,39 @@ def _git(*args: str, timeout: int = 20) -> str:
     if r.returncode:
         raise RuntimeError((r.stderr or "git falhou").strip()[:200])
     return r.stdout.strip()
+
+
+_ts_cache: dict = {"at": 0.0, "data": {}}
+
+
+def _tailscale() -> dict:
+    """Endereço HTTPS do Tailscale deste PC (para o QR do celular). Vazio se não houver Tailscale ligado."""
+    if time.time() - _ts_cache["at"] < 60:
+        return _ts_cache["data"]
+    data: dict = {}
+    exe = shutil.which("tailscale")
+    if exe:
+        try:
+            st = json.loads(subprocess.run([exe, "status", "--json"], capture_output=True, text=True, timeout=5,
+                                           check=False).stdout or "{}")
+            dns = str((st.get("Self") or {}).get("DNSName") or "").rstrip(".")
+            if dns and st.get("BackendState") == "Running":
+                data = {"url": f"https://{dns}", "serving": None}
+                sv = subprocess.run([exe, "serve", "status", "--json"], capture_output=True, text=True, timeout=5,
+                                    check=False)
+                if sv.returncode == 0:
+                    data["serving"] = bool(json.loads(sv.stdout or "{}"))
+        except (OSError, ValueError, subprocess.TimeoutExpired):
+            data = {}
+    _ts_cache.update(at=time.time(), data=data)
+    return data
+
+
+@router.get("/phone", response_model=dict, summary="Link para abrir no celular (app online ou Tailscale do PC)")
+def phone(ctx: CtxDep) -> dict:
+    app_url, ts = cloud.load_config()["app_url"], _tailscale()
+    return {"url": app_url or ts.get("url") or "", "app_url": app_url, "tailscale_url": ts.get("url"),
+            "tailscale_serving": ts.get("serving")}
 
 
 def _service_on() -> bool:

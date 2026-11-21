@@ -198,3 +198,10 @@ def test_system_version_and_update(client, monkeypatch):
     system.FLAG.unlink()
     monkeypatch.setattr(system, "_git", lambda *a, timeout=20: "same" if a[0] == "rev-parse" else "")
     assert client.post("/api/v1/system/update", headers=AUTH).json()["update"] is False
+
+
+def test_phone_link_uses_tailscale_when_no_online_app(client, monkeypatch):
+    from stark_engine.routers import system
+    monkeypatch.setattr(system, "_tailscale", lambda: {"url": "https://meu-pc.tail.ts.net", "serving": True})
+    r = client.get("/api/v1/system/phone", headers=AUTH).json()
+    assert r["url"] == "https://meu-pc.tail.ts.net" and r["tailscale_serving"] is True

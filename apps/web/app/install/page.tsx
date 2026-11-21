@@ -6,7 +6,7 @@ import { Badge, Button, Field, Input, Note, Panel } from "@/components/ui";
 import { usePoll } from "@/lib/api";
 import { CLOUD } from "@/lib/mode";
 import { runInstall, useInstallPrompt, useJustInstalled, useOrigin, usePlatform, useStandalone } from "@/lib/pwa";
-import type { CloudStatus, Health } from "@/lib/types";
+import type { Health } from "@/lib/types";
 
 const TABS = [
   { id: "android", label: "Android" },
@@ -65,9 +65,9 @@ export default function InstallPage() {
   const { origin, secure, local } = useOrigin();
   const health = usePoll<Health>("/health", 10000);
   const [tab, setTab] = useState<Tab | null>(null);
-  const cloudSt = usePoll<CloudStatus>(CLOUD ? null : "/cloud/status", 0);
+  const phone = usePoll<{ url: string; tailscale_url: string | null; tailscale_serving: boolean | null }>(CLOUD ? null : "/system/phone", 0);
   const [typedUrl, setPhoneUrl] = useState("");
-  const phoneUrl = typedUrl || cloudSt.data?.app_url || "";
+  const phoneUrl = typedUrl || phone.data?.url || "";
   const [sw, setSw] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -132,9 +132,12 @@ export default function InstallPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Panel eyebrow="celular" title="Abrir no telefone" id="qr">
           {local && (
-            <Field label="Link do app online" hint="vem de Config → Nuvem (ou cole um endereço HTTPS)">
-              <Input value={phoneUrl} onChange={(e) => setPhoneUrl(e.target.value)} placeholder="https://clipzou-xxxx.vercel.app" inputMode="url" />
+            <Field label="Link para o celular" hint={phone.data?.tailscale_url ? "Tailscale do seu PC, achado sozinho. Celular com o app Tailscale ligado." : "app online (Config → Nuvem) ou endereço HTTPS do Tailscale"}>
+              <Input value={phoneUrl} onChange={(e) => setPhoneUrl(e.target.value)} placeholder="https://seu-pc.tailnet.ts.net" inputMode="url" />
             </Field>
+          )}
+          {local && phone.data?.tailscale_serving === false && !typedUrl && (
+            <Note tone="warn">O Tailscale está ligado, mas ainda não abre o Clipzou: rode uma vez no PC <code className="text-cyan">sudo tailscale serve --bg 3000</code>.</Note>
           )}
           {svg ? (
             <div className="mt-4 flex flex-col items-center gap-2">
@@ -143,7 +146,7 @@ export default function InstallPage() {
               <p className="break-all text-center font-mono text-xs text-muted">{target}</p>
             </div>
           ) : (
-            <p className="mt-4 text-sm text-muted">Coloque o link do app online em Config → Nuvem: o QR aparece aqui para escanear com o celular.</p>
+            <p className="mt-4 text-sm text-muted">Ligue o Tailscale no PC (ou configure Config → Nuvem): o QR aparece aqui sozinho.</p>
           )}
         </Panel>
 
