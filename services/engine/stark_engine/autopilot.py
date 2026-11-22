@@ -43,6 +43,7 @@ METRICOOL_URL = "https://app.metricool.com/brands/connections?blogId=8262686"
 class Pick:
     clip_id: int
     score: float
+    base: float
     title: str
     duration_s: float
     trend_tags: list[str]
@@ -102,8 +103,9 @@ def eligible(session: Session, ws: Workspace) -> list[Pick]:
         words = set(content_words(f"{title} {' '.join(cand.keywords if cand else [])} "
                                   f"{(cand.transcript_text if cand else '')[:600]}"))
         age_h = max(0.0, (now - ec.updated_at.timestamp()) / 3600)
-        score, tags = score_clip(float(cand.score if cand else 50), words, trend, age_h)
-        out.append(Pick(ec.id, score, title, ec.duration_s, tags, ec, cand, video))
+        base = float(cand.score if cand else 50)
+        score, tags = score_clip(base, words, trend, age_h)
+        out.append(Pick(ec.id, score, base, title, ec.duration_s, tags, ec, cand, video))
     return sorted(out, key=lambda p: p.score, reverse=True)
 
 
@@ -130,10 +132,13 @@ def _rotate(nets: list[str], last: str | None) -> list[str]:
     return nets
 
 
-def plan(session: Session, ws: Workspace, posted: list[dict]) -> dict:
-    """Próximos posts: um corte diferente por post, redes em rodízio, dentro do limite do mês."""
+def plan(session: Session, ws: Workspace, posted: list[dict], connected: list[str] | None = None) -> dict:
+    """Próximos posts: um corte diferente por post, redes em rodízio, dentro do limite do mês.
+
+    connected = redes ligadas no Metricool (o agendador avisa); fora delas não entra na fila.
+    """
     cfg = ws_settings(ws)["autopilot"]
-    nets = [n for n in cfg.get("networks") or [] if n in NETWORKS]
+    nets = [n for n in cfg.get("networks") or [] if n in NETWORKS and (connected is None or n in connected)]
     month = datetime.now(UTC).strftime("%Y-%m")
     used = sum(1 for p in posted if str(p.get("month")) == month)
     limit = int(cfg.get("monthly_limit", 18))
@@ -144,8 +149,8 @@ def plan(session: Session, ws: Workspace, posted: list[dict]) -> dict:
         return base
     done = {(int(p["clip_id"]), str(p.get("network"))) for p in posted if p.get("clip_id") is not None}
     clips_done = {c for c, _ in done}
-    min_score = float(cfg.get("min_score", 40))
-    picks = [p for p in eligible(session, ws) if p.score >= min_score]
+    min_score = float(cfg.get("min_score", 30))  # régua só da qualidade do corte; o "em alta" só ordena
+    picks = [p for p in eligible(session, ws) if p.base >= min_score]
     order = _rotate(nets, str(posted[-1].get("network")) if posted else None)
     taken: set[int] = set()
     for i in range(min(QUEUE_SIZE, max(0, limit - used))):
@@ -187,8 +192,10 @@ def sync(session: Session, ws: Workspace, client: Supa) -> dict:
     folder = str(client.rpc("clipzou_pc_hello", p_secret=sec))
     state = _read(STATE_FILE, {"files": {}, "queue": {}})
     files: dict = state.setdefault("files", {})
-    posted = _posted_list(client.rpc("clipzou_pc_push", p_secret=sec, p_queue=state.get("queue") or {}))
-    q = plan(session, ws, posted)
+    back = client.rpc("clipzou_pc_push", p_secret=sec, p_queue=state.get("queue") or {})
+    posted = _posted_list(back)
+    connected = back.get("connected") if isinstance(back, dict) and isinstance(back.get("connected"), list) else None
+    q = plan(session, ws, posted, connected)
     picks: dict[int, Pick] = q.pop("_picks", {})
     now = time.time()
     for item in q["items"]:

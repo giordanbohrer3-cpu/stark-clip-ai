@@ -124,6 +124,8 @@ def test_plan_rotates_networks_respects_month_and_adds_tags(clips):
         used = [{"clip_id": 999, "network": "tiktok", "month": month}] * 17
         q2 = autopilot.plan(s, ws, used)
         assert len(q2["items"]) == 1 and q2["items"][0]["network"] == "instagram"  # 18º do mês, depois do tiktok
+        only = autopilot.plan(s, ws, [], connected=["instagram", "tiktok"])  # Facebook não ligado no Metricool
+        assert [i["network"] for i in only["items"]] == ["tiktok", "instagram", "tiktok"]
         ws.settings = deep_merge(ws.settings or {}, {"autopilot": {"enabled": False}})
         s.add(ws)
         s.commit()
