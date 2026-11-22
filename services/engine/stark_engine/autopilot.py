@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
+from sqlalchemy import func
 from sqlmodel import Session, select
 
 from .clipper import content_words
@@ -137,7 +138,8 @@ def plan(session: Session, ws: Workspace, posted: list[dict], connected: list[st
 
     connected = redes ligadas no Metricool (o agendador avisa); fora delas não entra na fila.
     """
-    cfg = ws_settings(ws)["autopilot"]
+    settings = ws_settings(ws)
+    cfg = settings["autopilot"]
     nets = [n for n in cfg.get("networks") or [] if n in NETWORKS and (connected is None or n in connected)]
     month = datetime.now(UTC).strftime("%Y-%m")
     used = sum(1 for p in posted if str(p.get("month")) == month)
@@ -150,7 +152,13 @@ def plan(session: Session, ws: Workspace, posted: list[dict], connected: list[st
     done = {(int(p["clip_id"]), str(p.get("network"))) for p in posted if p.get("clip_id") is not None}
     clips_done = {c for c, _ in done}
     min_score = float(cfg.get("min_score", 30))  # régua só da qualidade do corte; o "em alta" só ordena
-    picks = [p for p in eligible(session, ws) if p.base >= min_score]
+    usable = eligible(session, ws)
+    picks = [p for p in usable if p.base >= min_score]
+    ready = session.exec(select(func.count()).select_from(EditedClip).where(
+        EditedClip.workspace_id == ws.id, EditedClip.status == "ready")).one()
+    # estoque: mostra o motivo certo quando a fila fica vazia (painel e agendador)
+    base["stock"] = {"ready": int(ready), "usable": len(usable), "good": len(picks),
+                     "inbox": bool(settings["inbox"].get("confirmed"))}
     order = _rotate(nets, str(posted[-1].get("network")) if posted else None)
     taken: set[int] = set()
     for i in range(min(QUEUE_SIZE, max(0, limit - used))):
@@ -228,7 +236,7 @@ def sync(session: Session, ws: Workspace, client: Supa) -> dict:
     state["queue"] = q
     _write(STATE_FILE, state)
     return {"items": q["items"], "used_this_month": q["used_this_month"], "monthly_limit": q["monthly_limit"],
-            "enabled": q["enabled"], "posted_recent": posted[-6:]}
+            "enabled": q["enabled"], "posted_recent": posted[-6:], "stock": q.get("stock")}
 
 
 def tick() -> dict:

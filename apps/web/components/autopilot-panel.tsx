@@ -7,14 +7,28 @@ import { api, usePoll } from "@/lib/api";
 import { ago } from "@/lib/format";
 
 type Item = { key: string; clip_id: number; network: string; title: string; caption: string; score: number };
+type Stock = { ready: number; usable: number; good: number; inbox: boolean };
 type Status = {
   at?: string; error?: string; enabled?: boolean; items?: Item[]; used_this_month?: number; monthly_limit?: number;
-  posted_recent?: { clip_id: number; network: string; scheduled_for?: string }[];
+  posted_recent?: { clip_id: number; network: string; scheduled_for?: string }[]; stock?: Stock | null;
   settings: { enabled: boolean; networks: string[]; monthly_limit: number };
   metricool_url: string;
 };
 
 const NET: Record<string, string> = { tiktok: "TikTok", instagram: "Instagram", facebook: "Facebook" };
+
+/** Por que não há post na fila: o próximo passo certo, sem adivinhar. */
+function emptyReason(s?: Status): string {
+  if (s?.enabled === false) return "Piloto desligado ou sem rede ligada no Metricool.";
+  if ((s?.used_this_month ?? 0) >= (s?.monthly_limit ?? 18)) return "Limite do mês atingido (plano grátis). Volta no dia 1º.";
+  const st = s?.stock;
+  if (!st) return "Nenhum corte pronto ainda. Jogue vídeos na pasta de entrada.";
+  if (st.ready === 0) return st.inbox ? "Nenhum corte pronto ainda. Jogue vídeos na pasta de entrada."
+    : "Nenhum corte pronto. No Feed, clique em Ativar pasta e jogue vídeos na pasta de entrada.";
+  if (st.usable === 0) return `${st.ready} cortes prontos, mas nenhum com autorização de uso comercial.`;
+  if (st.good === 0) return `${st.usable} cortes autorizados, mas todos abaixo da nota mínima.`;
+  return "Todos os cortes bons já foram agendados. Jogue vídeos novos na pasta de entrada.";
+}
 
 export function AutopilotPanel() {
   const st = usePoll<Status>("/system/autopilot", 15000);
@@ -67,7 +81,7 @@ export function AutopilotPanel() {
       <div className="mt-4">
         <p className="hud-label mb-2">próximos posts</p>
         {!s?.items?.length ? (
-          <p className="text-sm text-muted">Nenhum corte pronto com autorização comercial ainda. Jogue vídeos na pasta de entrada.</p>
+          <p className="text-sm text-muted">{emptyReason(s)}</p>
         ) : (
           <ul className="space-y-2">
             {s.items.map((i) => (

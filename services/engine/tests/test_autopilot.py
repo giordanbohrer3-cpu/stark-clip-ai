@@ -120,6 +120,8 @@ def test_plan_rotates_networks_respects_month_and_adds_tags(clips):
         assert [i["network"] for i in q["items"]] == ["tiktok", "instagram", "facebook"]
         assert len({i["clip_id"] for i in q["items"]}) == 3 and q["items"][0]["clip_id"] == clips[0]
         assert "#leonida" in q["items"][0]["caption"] and "#clipzou" in q["items"][0]["caption"]
+        st = q["stock"]  # o corte sem permissão comercial está pronto, mas não entra
+        assert st["ready"] - st["usable"] >= 1 and st["good"] >= 3
         month = datetime.now(UTC).strftime("%Y-%m")
         used = [{"clip_id": 999, "network": "tiktok", "month": month}] * 17
         q2 = autopilot.plan(s, ws, used)
