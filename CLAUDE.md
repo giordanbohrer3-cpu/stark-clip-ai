@@ -45,4 +45,8 @@ em segundo plano e confira `curl -s http://127.0.0.1:3000/api/engine/live/status
 - Nuvem: Supabase do usuário, projeto `pyxbnpplflraaztljgos`, área `clipzou` (só a chave secreta acessa). Nunca mexa em
   outras tabelas desse projeto (são de outros apps dele). A chave secreta o usuário cola em Config → Nuvem e na Vercel;
   NÃO peça no chat.
+- Piloto automático: o PC (`stark_engine/autopilot.py`, roda no processo `cloud`) escolhe os cortes em alta, monta
+  legenda + # e manda a fila para `clipzou.snapshot` ('autopilot_queue'), com vídeos na pasta secreta do PC (chave
+  pública + segredo em `data/.autopilot_secret`). Uma tarefa agendada (2x/dia) agenda 1 post/dia no Metricool (marca
+  blogId 8262686, plano grátis = 20 posts/mês) e registra em 'autopilot_posted'. Ligar/desligar: Config → Piloto automático.
 - Docs: `docs/ARCHITECTURE.md`, `docs/INSTALL.md`, `docs/INTEGRATIONS.md`.
