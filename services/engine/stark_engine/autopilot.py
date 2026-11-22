@@ -162,6 +162,19 @@ def plan(session: Session, ws: Workspace, posted: list[dict]) -> dict:
     return base
 
 
+def _waiting(posted: list[dict], margin_s: int = 6 * 3600) -> set[str]:
+    """Cortes agendados que ainda não saíram: o vídeo fica na nuvem até 6 h depois do horário do post."""
+    out = set()
+    for p in posted:
+        try:
+            when = datetime.fromisoformat(str(p.get("scheduled_for"))).timestamp()
+        except ValueError:
+            continue
+        if when + margin_s > time.time() and p.get("clip_id") is not None:
+            out.add(str(p["clip_id"]))
+    return out
+
+
 def _posted_list(raw) -> list[dict]:
     if isinstance(raw, dict):
         raw = raw.get("posts") or []
@@ -199,7 +212,7 @@ def sync(session: Session, ws: Workspace, client: Supa) -> dict:
             info["cover_url"] = client.sign(info["jpg"], SIGN_S) if info.get("jpg") else None
             info["signed"] = now
         item["media_url"], item["cover_url"] = info["media_url"], info.get("cover_url")
-    keep = {str(i["clip_id"]) for i in q["items"]}
+    keep = {str(i["clip_id"]) for i in q["items"]} | _waiting(posted)
     for k in [k for k in files if k not in keep]:
         info = files.pop(k)
         client.remove([x for x in (info.get("mp4"), info.get("jpg")) if x])

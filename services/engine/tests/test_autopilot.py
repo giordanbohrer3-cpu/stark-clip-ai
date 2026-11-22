@@ -151,3 +151,18 @@ def test_sync_uploads_queue_signs_and_cleans_posted(clips):
     ids2 = [i["clip_id"] for i in r2["items"]]
     assert first["clip_id"] not in ids2 and r2["used_this_month"] == 1  # já postado sai da fila e da nuvem
     assert not any(o.split("/")[-1].startswith(f"{first['clip_id']}-") for o in fake.objects)
+
+
+def test_scheduled_post_keeps_video_until_it_goes_out(clips):
+    fake = FakeSupa()
+    client = Supa("https://abc.supabase.co", PUB, httpx.MockTransport(fake))
+    with session_scope() as s:
+        autopilot.sync(s, s.get(Workspace, 1), client)
+    first = fake.queue["items"][0]
+    later = (datetime.now(UTC) + timedelta(hours=20)).isoformat()
+    fake.posted = [{"clip_id": first["clip_id"], "network": first["network"], "scheduled_for": later,
+                    "month": datetime.now(UTC).strftime("%Y-%m")}]
+    with session_scope() as s:
+        r = autopilot.sync(s, s.get(Workspace, 1), client)
+    assert first["clip_id"] not in [i["clip_id"] for i in r["items"]]  # não agenda de novo
+    assert any(o.split("/")[-1].startswith(f"{first['clip_id']}-") for o in fake.objects)  # vídeo continua lá
