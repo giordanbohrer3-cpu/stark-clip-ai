@@ -23,7 +23,7 @@ from sqlmodel import Session, select
 from .clipper import content_words
 from .cloud import CloudError, Supa, _read, _thumb, _write
 from .config import get_settings
-from .copywriter import RULES, heuristic_copy, to_tag
+from .copywriter import RULES, heuristic_copy, niche_hashtags, to_tag
 from .db import session_scope
 from .models import ClipCandidate, EditedClip, SourceVideo, Trend, Workspace
 from .pipeline import rights_ok
@@ -110,16 +110,17 @@ def eligible(session: Session, ws: Workspace) -> list[Pick]:
     return sorted(out, key=lambda p: p.score, reverse=True)
 
 
-def caption(p: Pick, network: str) -> str:
+def caption(p: Pick, network: str, niche_default: str = "") -> str:
     """Legenda da rede (já gerada no render) + as # do assunto em alta, no limite de cada rede."""
     copy = p.ec.copy_text or {}
     cap = str((copy.get("captions") or {}).get(network) or "")
     if not cap:
         cand = p.cand
+        niche = p.video.niche or niche_default
         cap = heuristic_copy(p.title, cand.transcript_text if cand else "", cand.keywords if cand else [],
-                             [p.video.niche] if p.video.niche else [])["captions"][network]
+                             niche_hashtags(niche))["captions"][network]
     have = {t.lower() for t in re.findall(r"#\w+", cap)}
-    room = max(0, RULES[network]["tags"] + 1 - len(have))
+    room = max(0, RULES[network]["tags"] + 2 - len(have))  # # do assunto em alta: até 2 a mais
     add = [t for t in p.trend_tags if t.lower() not in have][:room]
     if add:
         cap = f"{cap.rstrip()} {' '.join(add)}"
@@ -169,7 +170,8 @@ def plan(session: Session, ws: Workspace, posted: list[dict], connected: list[st
             break
         taken.add(pick.clip_id)
         base["items"].append({"key": f"{pick.clip_id}:{net}", "clip_id": pick.clip_id, "network": net,
-                              "title": pick.title[:100], "caption": caption(pick, net), "score": pick.score,
+                              "title": pick.title[:100], "caption": caption(pick, net, str(settings["radar"].get("game") or "")),
+                              "score": pick.score,
                               "duration_s": round(pick.duration_s, 1)})
     base["_picks"] = {p.clip_id: p for p in picks if p.clip_id in taken}
     return base
@@ -236,7 +238,8 @@ def sync(session: Session, ws: Workspace, client: Supa) -> dict:
     state["queue"] = q
     _write(STATE_FILE, state)
     return {"items": q["items"], "used_this_month": q["used_this_month"], "monthly_limit": q["monthly_limit"],
-            "enabled": q["enabled"], "posted_recent": posted[-6:], "stock": q.get("stock")}
+            "enabled": q["enabled"], "posted_recent": posted[-6:], "stock": q.get("stock"),
+            "networks": q["networks"], "connected": connected}
 
 
 def tick() -> dict:

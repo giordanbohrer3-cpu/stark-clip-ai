@@ -35,6 +35,7 @@ def status(ctx: CtxDep) -> dict:
     return {"path": str(d), "exists": exists, "enabled": bool(cfg.get("enabled", True)),
             "confirmed": bool(cfg.get("confirmed")), "confirmed_at": cfg.get("confirmed_at"),
             "rights_type": cfg.get("rights_type"), "holder": cfg.get("holder"),
+            "allows_commercial": bool(cfg.get("allows_commercial", True)),
             "pending": inbox.pending(ctx.session, ctx.ws) if exists else [], "imported": len(vids),
             "errors": [{"title": v.title, "error": v.error} for v in vids if v.status == "error"][-5:]}
 

@@ -38,6 +38,9 @@ def test_chunked_upload_roundtrip(client, monkeypatch, tiny_video):
     assert done.status_code == 201, done.text
     v = done.json()
     assert v["rights_ok"] and v["has_file"] and v["size_bytes"] == len(tiny_video) and v["duration_s"] > 1
+    job = client.post(f"/api/v1/videos/{v['id']}/process", headers=AUTH, json={"auto_render": True})
+    assert job.status_code == 202, job.text  # Piloto: solta o vídeo e ele corta/legenda sozinho
+    assert job.json()["payload"]["auto_render"] is True and job.json()["payload"]["layout"]
 
 
 def test_chunked_upload_guards(client, monkeypatch):

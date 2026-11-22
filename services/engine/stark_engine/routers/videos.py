@@ -376,7 +376,11 @@ def process(ctx: CtxDep, video_id: int, body: ProcessIn | None = None) -> JobRea
         raise HTTPException(409, "sem arquivo: referência do YouTube não é autorização. Envie o original.")
     if not rights_ok(ctx.session, v):
         raise HTTPException(403, "registre uma autorização de uso válida antes de processar")
-    job = enqueue(ctx.session, ctx.ws.id, "analyze", v.id, {"mode": body.mode} if body and body.mode else {})
+    payload: dict = {"mode": body.mode} if body and body.mode else {}
+    if body and body.auto_render:
+        box = ctx.settings["inbox"]  # mesmo jeito da pasta de entrada
+        payload.update(auto_render=True, layout=box.get("layout") or "auto", credit=box.get("credit") or "")
+    job = enqueue(ctx.session, ctx.ws.id, "analyze", v.id, payload)
     v.status = "queued"
     ctx.session.add(v)
     ctx.audit("process_queued", f"video:{v.id}", job=job.id)

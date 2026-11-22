@@ -71,6 +71,7 @@ class UploadSession(BaseModel):
 
 class ProcessIn(BaseModel):
     mode: Literal["short", "long"] | None = None
+    auto_render: bool = False  # Piloto: corta, legenda e deixa pronto para postar, sem passar pelo estúdio
 
 
 class CandidatePatch(BaseModel):

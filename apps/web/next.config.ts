@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next", // teste local do modo nuvem em pasta separada
   env: { NEXT_PUBLIC_CLIPZOU_CLOUD: CLOUD ? "1" : "" }, // app online (Vercel) x app no PC
   poweredByHeader: false,
+  // o proxy.ts faz o Next guardar o corpo da requisição (padrão 10 MB): sem isso, cada parte de 48 MB do
+  // upload em partes chegava cortada ao motor ("parte incompleta") e vídeo grande não entrava
+  experimental: { proxyClientMaxBodySize: "64mb" },
   async headers() {
     return [{
       source: "/sw.js",
