@@ -66,6 +66,9 @@ DEFAULT_SETTINGS: dict[str, Any] = {
                   "UCV306eHqgo0LvBf3Mh36AHg",  # Felipe Neto
                   "UCIPPMRA040LQr5QPyJEbmXA",  # MrBeast Gaming
               ]},
+    # piloto automático: escolhe os cortes em alta e agenda no Metricool (grátis = 20 posts/mês somando as redes)
+    "autopilot": {"enabled": True, "networks": ["tiktok", "instagram", "facebook"], "monthly_limit": 18,
+                  "per_day": 1, "min_score": 40, "timezone": "America/Sao_Paulo"},
     # pasta de entrada: vídeos autorizados jogados aqui viram cortes no feed (declaração única em /inbox/confirm)
     "inbox": {"enabled": True, "path": "", "confirmed": False, "confirmed_at": None, "rights_type": "own",
               "holder": "", "allows_commercial": True, "layout": "auto", "credit": ""},

@@ -41,6 +41,8 @@ class Settings(BaseSettings):
     # app online (Vercel) sem Tailscale: o PC sincroniza com o Supabase grátis (área separada "clipzou")
     cloud_url: str = "https://pyxbnpplflraaztljgos.supabase.co"
     cloud_key: str = ""  # chave secreta do Supabase (melhor colar em Config → Nuvem; fica criptografada)
+    # chave PÚBLICA do Supabase (feita para ficar exposta): o piloto automático só acessa a pasta secreta deste PC
+    cloud_publishable: str = "sb_publishable_3tsacQWlUmNGRfOPaM9kBQ_VCQuvlJq"
     engine_url: str = "http://127.0.0.1:8787"  # motor local (o sincronizador fala com ele)
 
     free_only: bool = True  # 100% grátis: APIs pagas bloqueadas (STARK_FREE_ONLY=false libera)

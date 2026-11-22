@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Badge, Button, Field, Input, Note, Panel, Select, Textarea, Toggle } from "@/components/ui";
 import { api, ApiError, usePoll } from "@/lib/api";
 import { ago, usd } from "@/lib/format";
+import { AutopilotPanel } from "@/components/autopilot-panel";
 import { CloudPanel, CloudSettings } from "@/components/cloud-panels";
 import { CLOUD } from "@/lib/mode";
 import type { Settings, SettingsResp } from "@/lib/types";
@@ -36,6 +37,7 @@ function LocalSettings() {
     if (!s) return;
     const data: Partial<Settings> = { ...s };
     delete data.paused;
+    delete (data as Record<string, unknown>).autopilot; // o painel do piloto salva sozinho
     setBusy(true);
     setMsg(null);
     try {
@@ -97,6 +99,8 @@ function LocalSettings() {
         </div>
       </div>
       {msg && <Note tone={msg.tone}>{msg.text}</Note>}
+
+      <AutopilotPanel />
 
       <div className="grid gap-6 xl:grid-cols-2">
         <Panel eyebrow="agente" title="Nível de autonomia" id="auto">

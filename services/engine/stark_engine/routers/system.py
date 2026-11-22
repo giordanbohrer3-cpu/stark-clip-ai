@@ -10,7 +10,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 
-from .. import cloud
+from .. import autopilot, cloud
 from ..config import ENGINE_ROOT
 from ..security import CtxDep, require_role
 
@@ -91,3 +91,8 @@ def update(ctx: CtxDep) -> dict:
     ctx.audit("system_update", "app", to=up[:12])
     ctx.session.commit()
     return {"update": True, "message": "Versão nova encontrada. O Clipzou reinicia atualizado em 1–3 min."}
+
+
+@router.get("/autopilot", response_model=dict, summary="Piloto automático: próximos posts e limite do mês")
+def autopilot_status(ctx: CtxDep) -> dict:
+    return {**autopilot.read_status(), "settings": ctx.settings["autopilot"], "metricool_url": autopilot.METRICOOL_URL}

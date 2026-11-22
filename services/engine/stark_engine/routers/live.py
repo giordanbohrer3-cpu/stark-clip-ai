@@ -1,6 +1,7 @@
 """Máquina de clipes: radar ao vivo, momentos, canais autorizados, login Twitch, campanhas e feed."""
 from __future__ import annotations
 
+import math
 import secrets
 import time
 from datetime import datetime, timedelta
@@ -138,7 +139,8 @@ def hot_videos(ctx: CtxDep, shorts: bool = True, limit: int = 60) -> list[dict]:
         if (m.get("short") and not shorts) or not t.url:
             continue
         try:
-            hours = max(1.0, (time.time() - datetime.fromisoformat(m["published_at"]).timestamp()) / 3600)
+            age_h = (time.time() - datetime.fromisoformat(m["published_at"]).timestamp()) / 3600
+            hours = max(1.0, math.ceil(age_h * 2) / 2)  # meia em meia hora: número estável (menos envio à nuvem)
         except (KeyError, ValueError, AttributeError, TypeError):
             hours = 24.0
         views = int(m.get("views") or 0)

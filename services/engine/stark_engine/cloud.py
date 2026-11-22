@@ -144,14 +144,23 @@ class Supa:
             raise CloudError(f"sem conexão com a nuvem ({type(e).__name__})") from e
         return r.json() if r.content else None
 
-    def upload(self, path: str, file: Path, ctype: str) -> None:
-        headers = {"content-type": ctype, "x-upsert": "true", "cache-control": "max-age=31536000",
-                   "content-length": str(file.stat().st_size)}
+    def upload(self, path: str, file: Path, ctype: str, upsert: bool = True) -> None:
+        headers = {"content-type": ctype, "cache-control": "max-age=31536000", "content-length": str(file.stat().st_size)}
+        if upsert:
+            headers["x-upsert"] = "true"
         try:
             with file.open("rb") as f:
                 self._check(self.http.post(f"/storage/v1/object/{BUCKET}/{path}", content=f, headers=headers))
         except httpx.HTTPError as e:
             raise CloudError(f"envio do corte falhou ({type(e).__name__})") from e
+
+    def sign(self, path: str, expires_s: int) -> str:
+        """Link temporário para baixar um arquivo da pasta (o Metricool usa para pegar o vídeo)."""
+        try:
+            r = self._check(self.http.post(f"/storage/v1/object/sign/{BUCKET}/{path}", json={"expiresIn": expires_s}))
+        except httpx.HTTPError as e:
+            raise CloudError(f"link do corte falhou ({type(e).__name__})") from e
+        return f"{str(self.http.base_url).rstrip('/')}/storage/v1/{r.json()['signedURL'].lstrip('/')}"
 
     def remove(self, paths: list[str]) -> None:
         if not paths:
@@ -335,9 +344,17 @@ def main() -> None:  # pragma: no cover - laço de serviço
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
     logging.getLogger("httpx").setLevel(logging.WARNING)
     init_db()
-    syncer, sig, last = None, None, {"cmd": 0.0, "clips": 0.0, "snap": 0.0, "egress": 0.0}
+    from . import autopilot  # piloto automático: roda mesmo sem a chave secreta (usa a chave pública)
+
+    syncer, sig, last = None, None, {"cmd": 0.0, "clips": 0.0, "snap": 0.0, "egress": 0.0, "auto": 0.0}
     status: dict = {}
     while True:
+        if time.time() - last["auto"] >= autopilot.EVERY_S:
+            last["auto"] = time.time()
+            try:
+                autopilot.tick()
+            except Exception:  # piloto nunca derruba a ponte
+                log.exception("piloto automático falhou")
         cfg = load_config()
         status["beat"] = _now()
         if not cfg["key"] or not cfg["enabled"]:
